@@ -20,12 +20,14 @@ import type { RatedEvent } from "../meter";
 import type { ResourceType } from "../schema";
 import { shortDay, usd2 } from "./format";
 
+// Drift Audio palette (driftdsp.com tokens): purple accent carries the LLM
+// series — it's the one the demo narrative cares about.
 const RESOURCE_ORDER: ResourceType[] = ["api", "subscription", "compute", "llm"];
 const RESOURCE_COLOR: Record<ResourceType, string> = {
-  api: "#5b7db1",
-  subscription: "#8a86b8",
-  compute: "#6aa284",
-  llm: "#d98943",
+  api: "#0033FF",
+  subscription: "#B8B8B8",
+  compute: "#FF4D8B",
+  llm: "#DF68EB",
 };
 
 export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay: string }) {
@@ -48,7 +50,12 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
   const tooltip = (
     <Tooltip
       formatter={(value, name) => [usd2(Number(value ?? 0)), String(name)]}
-      contentStyle={{ background: "#1b2130", border: "1px solid #2e3950", borderRadius: 6 }}
+      contentStyle={{
+        background: "#FFFFFF",
+        border: "1px solid rgba(0, 0, 0, 0.12)",
+        borderRadius: 10,
+        fontSize: 12,
+      }}
     />
   );
 
@@ -63,7 +70,7 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
           <h3>Total by resource type</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={rows} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
-              <CartesianGrid stroke="#242d40" vertical={false} />
+              <CartesianGrid stroke="rgba(0, 0, 0, 0.08)" vertical={false} />
               <XAxis dataKey="day" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
               <YAxis tick={{ fontSize: 11 }} width={52} />
               {tooltip}
@@ -77,7 +84,7 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
           <h3>LLM spend only</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={rows} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
-              <CartesianGrid stroke="#242d40" vertical={false} />
+              <CartesianGrid stroke="rgba(0, 0, 0, 0.08)" vertical={false} />
               <XAxis dataKey="day" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
               <YAxis tick={{ fontSize: 11 }} width={52} />
               {tooltip}

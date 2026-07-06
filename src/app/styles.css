@@ -1,15 +1,25 @@
+/* Theme: Drift Audio (driftdsp.com) design tokens, applied to the dashboard.
+   Tokens extracted from the live site's :root — light canvas, Inter for
+   display/body, JetBrains Mono for small uppercase labels, purple accent.
+   (The site names the purple `--orange`; renamed `--accent` here.) */
+
 :root {
-  color-scheme: dark;
-  --bg: #10141d;
-  --panel: #171d2a;
-  --panel-2: #1b2130;
-  --border: #2e3950;
-  --text: #dbe2ef;
-  --muted: #8a94a8;
-  --accent: #d98943;
-  --green: #5fb37a;
-  --amber: #d9a943;
-  --red: #d96060;
+  color-scheme: light;
+  --bg: #ffffff;
+  --canvas-2: #f5f5f5;
+  --canvas-3: #ececec;
+  --accent: #df68eb;
+  --accent-deep: #b842c4;
+  --accent-glow: #f0a8f5;
+  --magenta: #ff4d8b;
+  --blue: #0033ff;
+  --ink: #000000;
+  --ink-soft: rgba(0, 0, 0, 0.62);
+  --ink-faint: rgba(0, 0, 0, 0.36);
+  --rule: rgba(0, 0, 0, 0.12);
+  --green: #1f9d63;
+  --amber: #c77e1c;
+  --red: #e23d6d;
 }
 
 * {
@@ -19,14 +29,19 @@
 body {
   margin: 0;
   background: var(--bg);
-  color: var(--text);
-  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .app {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 20px 24px 48px;
+  padding: 20px 32px 64px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -34,12 +49,20 @@ body {
 
 .load-state {
   padding: 48px;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
-/* ---- header ---- */
+/* ---- header (site nav treatment: sticky, blurred, hairline rule) ---- */
 
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(14px);
+  background: color-mix(in oklab, var(--bg) 80%, transparent);
+  border-bottom: 1px solid var(--rule);
+  margin: 0 -32px;
+  padding: 14px 32px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -50,12 +73,17 @@ body {
 .topbar h1 {
   margin: 0;
   font-size: 20px;
-  letter-spacing: 0.2px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
 }
 
 .subtitle {
-  color: var(--muted);
-  font-size: 12px;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
 .scrubber {
@@ -63,12 +91,13 @@ body {
   flex-direction: column;
   gap: 4px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--ink-soft);
   min-width: 260px;
 }
 
 .scrubber strong {
-  color: var(--text);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .scrubber input {
@@ -84,68 +113,85 @@ body {
 }
 
 .kpi {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
+  background: var(--canvas-2);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+
+.kpi:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--accent) 50%, var(--rule));
+  box-shadow: 0 20px 50px -22px rgba(223, 104, 235, 0.35);
 }
 
 .kpi-label {
-  font-size: 11px;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--muted);
+  color: var(--ink-faint);
 }
 
 .kpi-value {
   font-size: 20px;
   font-weight: 600;
+  letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
 }
 
 /* ---- cards ---- */
 
 .card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px 16px;
+  background: var(--canvas-2);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 18px 20px;
 }
 
 .card-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .card h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
 }
 
 .card h3 {
   margin: 0 0 8px;
-  font-size: 12px;
-  color: var(--muted);
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--ink-soft);
 }
 
 .fine-print {
   margin: 10px 0 0;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--ink-faint);
 }
 
+/* Site pill/tag treatment: mono, uppercase, 1px currentColor border */
 .chip {
-  font-size: 11px;
-  padding: 2px 8px;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
+  border: 1px solid currentColor;
 }
 
 /* ---- status colors ---- */
@@ -165,21 +211,21 @@ body {
 .gauge-track {
   position: relative;
   height: 26px;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
   overflow: visible;
-  margin: 18px 0 8px;
+  margin: 22px 0 8px;
 }
 
 .gauge-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  border-radius: 5px 0 0 5px;
+  border-radius: 999px 0 0 999px;
 }
 
 .gauge-fill.projected {
-  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: var(--accent-glow);
 }
 
 .gauge-fill.spent {
@@ -191,15 +237,18 @@ body {
   top: -6px;
   bottom: -6px;
   width: 2px;
-  background: var(--text);
+  background: var(--ink);
 }
 
 .gauge-budget-marker span {
   position: absolute;
-  top: -16px;
+  top: -18px;
   left: -30px;
-  font-size: 11px;
-  color: var(--muted);
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
   white-space: nowrap;
 }
 
@@ -207,7 +256,7 @@ body {
   display: flex;
   gap: 18px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 .swatch {
@@ -223,7 +272,7 @@ body {
 }
 
 .swatch.projected {
-  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: var(--accent-glow);
 }
 
 /* ---- charts ---- */
@@ -250,12 +299,13 @@ body {
   display: flex;
   justify-content: space-between;
   margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .commit-track {
   height: 8px;
-  background: var(--panel-2);
-  border: 1px solid var(--border);
+  background: var(--bg);
+  border: 1px solid var(--rule);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -264,32 +314,34 @@ body {
   height: 100%;
 }
 
-.commit-fill.commit-underutilized,
+.commit-fill.commit-underutilized {
+  background: var(--amber);
+}
+
+.commit-fill.commit-on_track {
+  background: var(--green);
+}
+
+.commit-fill.commit-overage {
+  background: var(--red);
+}
+
 .chip.commit-underutilized {
-  background: color-mix(in srgb, var(--amber) 70%, transparent);
+  color: var(--amber);
 }
 
-.commit-fill.commit-on_track,
 .chip.commit-on_track {
-  background: color-mix(in srgb, var(--green) 70%, transparent);
+  color: var(--green);
 }
 
-.commit-fill.commit-overage,
 .chip.commit-overage {
-  background: color-mix(in srgb, var(--red) 70%, transparent);
-}
-
-.chip.commit-underutilized,
-.chip.commit-on_track,
-.chip.commit-overage {
-  color: var(--bg);
-  border: none;
+  color: var(--red);
 }
 
 .commitment-detail {
   margin-top: 5px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
 
@@ -319,14 +371,14 @@ body {
 
 .breakdown-bar {
   height: 8px;
-  background: var(--panel-2);
+  background: var(--canvas-3);
   border-radius: 999px;
   overflow: hidden;
 }
 
 .breakdown-fill {
   height: 100%;
-  background: #5b7db1;
+  background: var(--accent);
   border-radius: 999px;
 }
 
@@ -336,5 +388,5 @@ body {
 
 .breakdown-share {
   text-align: right;
-  color: var(--muted);
+  color: var(--ink-faint);
 }
