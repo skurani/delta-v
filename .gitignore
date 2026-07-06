@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+
+# Generated event stream — deterministic from the seeded config; rebuild with `npm run generate`
+data/
