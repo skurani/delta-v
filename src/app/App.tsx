@@ -3,10 +3,12 @@
 // events up to that day, so every number is honest for that point in time.
 
 import { useEffect, useMemo, useState } from "react";
+import { detectAnomalies } from "../anomaly";
 import { attribute } from "../attribution";
 import { forecast } from "../forecast";
 import { meterEvents } from "../meter";
 import type { GeneratorConfig, UsageEvent } from "../schema";
+import { AlertCards } from "./AlertCard";
 import { Breakdowns } from "./Breakdowns";
 import { Commitments } from "./Commitments";
 import { MONTHLY_BUDGET } from "./config";
@@ -54,13 +56,16 @@ export function App() {
       asOfDay,
       MONTHLY_BUDGET,
     );
-    return { metered, attributed, fc };
+    // Detection sees only elapsed days, so the scrubber replays alerts
+    // exactly as they would have unfolded (no lookahead).
+    const alerts = detectAnomalies(metered.events, allDays.slice(0, allDays.indexOf(asOfDay) + 1));
+    return { metered, attributed, fc, alerts };
   }, [data, asOfDay, allDays]);
 
   if (error) return <div className="load-state">Failed to load usage data: {error}</div>;
   if (!data || !view) return <div className="load-state">Loading usage events…</div>;
 
-  const { metered, attributed, fc } = view;
+  const { metered, attributed, fc, alerts } = view;
 
   return (
     <div className="app">
@@ -109,6 +114,7 @@ export function App() {
         </div>
       </section>
 
+      <AlertCards alerts={alerts} />
       <ForecastCard fc={fc} />
       <DailyCharts events={metered.events} asOfDay={asOfDay} />
       <Commitments commitments={metered.commitments} />
