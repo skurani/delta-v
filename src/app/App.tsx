@@ -5,7 +5,7 @@
 // detection on the events up to that day, so every number is honest for
 // that point in time — in both views.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { detectAnomalies } from "../anomaly";
 import { attribute } from "../attribution";
 import { forecast } from "../forecast";
@@ -14,7 +14,7 @@ import type { GeneratorConfig, UsageEvent } from "../schema";
 import { buildWindowSummary } from "../summarize";
 import { AlertCards } from "./AlertCard";
 import { Breakdowns } from "./Breakdowns";
-import { Chat } from "./Chat";
+import { Chat, type DisplayTurn } from "./Chat";
 import { Commitments } from "./Commitments";
 import { MONTHLY_BUDGET } from "./config";
 import { DailyCharts } from "./DailyCharts";
@@ -37,6 +37,10 @@ export function App() {
   const [asOfIndex, setAsOfIndex] = useState<number | null>(null);
   const [tab, setTab] = useState<Tab>("chat");
   const [role, setRole] = useState<Role>("member");
+  // Conversation state lives here, above the tab switch, so it survives
+  // Chat → Dashboard → Chat (the Chat component unmounts on toggle).
+  const [chatTurns, setChatTurns] = useState<DisplayTurn[]>([]);
+  const chatApiMessages = useRef<unknown[]>([]);
 
   useEffect(() => {
     fetch("/usage-events.json")
@@ -124,7 +128,15 @@ export function App() {
         </div>
       </header>
 
-      {tab === "chat" && <Chat role={role} asOfDay={asOfDay} />}
+      {tab === "chat" && (
+        <Chat
+          role={role}
+          asOfDay={asOfDay}
+          turns={chatTurns}
+          setTurns={setChatTurns}
+          apiMessages={chatApiMessages}
+        />
+      )}
 
       {tab === "dashboard" && (
         <>

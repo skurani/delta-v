@@ -409,6 +409,18 @@ body {
   color: var(--ink-soft);
 }
 
+.chat-try-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chat-try-row .suggestion-chip {
+  font-size: 9.5px;
+  padding: 4px 10px;
+}
+
 .chat-input-row {
   display: flex;
   gap: 10px;

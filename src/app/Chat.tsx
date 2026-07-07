@@ -3,7 +3,7 @@
 // the same chart components the dashboard uses. History is client-held and
 // echoed opaquely (full API message shapes, thinking blocks included).
 
-import { useRef, useState } from "react";
+import { useState, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import {
   CartesianGrid,
   Line,
@@ -26,7 +26,9 @@ interface ToolEvent {
   result: unknown;
 }
 
-interface DisplayTurn {
+// Conversation state lives in App (above the tab switch), so toggling
+// Chat → Dashboard → Chat never unmounts it away.
+export interface DisplayTurn {
   who: "user" | "agent";
   text: string;
   toolEvents?: ToolEvent[];
@@ -92,11 +94,21 @@ function ToolArtifact({ event }: { event: ToolEvent }) {
   }
 }
 
-export function Chat({ role, asOfDay }: { role: "admin" | "member"; asOfDay: string }) {
-  const [turns, setTurns] = useState<DisplayTurn[]>([]);
+export function Chat({
+  role,
+  asOfDay,
+  turns,
+  setTurns,
+  apiMessages,
+}: {
+  role: "admin" | "member";
+  asOfDay: string;
+  turns: DisplayTurn[];
+  setTurns: Dispatch<SetStateAction<DisplayTurn[]>>;
+  apiMessages: MutableRefObject<unknown[]>;
+}) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
-  const apiMessages = useRef<unknown[]>([]);
 
   async function send(text: string) {
     if (!text.trim() || busy) return;
@@ -175,6 +187,22 @@ export function Chat({ role, asOfDay }: { role: "admin" | "member"; asOfDay: str
         ))}
         {busy && <div className="chat-turn chat-agent"><div className="chat-bubble chat-thinking">Working…</div></div>}
       </div>
+      {turns.length > 0 && (
+        <div className="chat-try-row">
+          <span className="subtitle">try also</span>
+          {SUGGESTIONS.map((s) => (
+            <button
+              key={s}
+              className="chip suggestion-chip"
+              onClick={() => send(s)}
+              disabled={busy}
+              type="button"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
       <form
         className="chat-input-row"
         onSubmit={(e) => {
