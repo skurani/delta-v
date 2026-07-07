@@ -46,7 +46,12 @@ export function ReasoningPanel({ summary }: { summary: WindowSummary }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ summary }),
       });
-      const body = await res.json();
+      // Empty body = Vite proxy with the backend down; don't feed it to JSON.parse.
+      const raw = await res.text();
+      if (!res.ok && raw.trim().length === 0) {
+        throw new Error(`agent server unreachable (HTTP ${res.status}) — start it with: npm run reason`);
+      }
+      const body = JSON.parse(raw);
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
       setState({ phase: "done", response: body });
     } catch (err) {

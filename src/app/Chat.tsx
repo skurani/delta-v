@@ -113,7 +113,21 @@ export function Chat({ role, asOfDay }: { role: "admin" | "member"; asOfDay: str
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ messages: apiMessages.current, role, as_of_day: asOfDay }),
       });
-      const body = await res.json();
+      // Read text first: when the backend is down, the Vite proxy answers
+      // 500 with an EMPTY body — res.json() would throw a bare SyntaxError.
+      const raw = await res.text();
+      if (!res.ok && raw.trim().length === 0) {
+        throw new Error(
+          `agent server unreachable (HTTP ${res.status}) — start it with: npm run reason` +
+            " (or USE_MOCK_LLM=true npm run reason for the free mock)",
+        );
+      }
+      let body: { error?: string; messages: unknown[]; reply: string; toolEvents: ToolEvent[] };
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        throw new Error(`server returned a non-JSON response (HTTP ${res.status}): ${raw.slice(0, 120)}`);
+      }
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
       apiMessages.current = body.messages;
       setTurns((t) => [...t, { who: "agent", text: body.reply, toolEvents: body.toolEvents }]);

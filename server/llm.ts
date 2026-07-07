@@ -149,8 +149,8 @@ const SCRIPTS: Script[] = [
     },
   },
   {
-    // Beat 1 + fallback: "how's my spend looking?"
-    match: () => true,
+    // Beat 1: "how's my spend looking?"
+    match: (q) => /spend|looking|overview|budget|month|on track|status|cost|forecast/.test(q),
     toolCalls: () => [
       { name: "get_spend_summary", input: {} },
       { name: "get_daily_series", input: { slice_by: "resource_type" } },
@@ -165,6 +165,18 @@ const SCRIPTS: Script[] = [
           : " No anomalies are currently firing.";
       return `Through day ${s.window.days_elapsed} of ${s.window.days_total}, you've spent ${usd(s.totals.rated_cost_to_date)} and the window is projected to end at ${usd(f.projected_window_total)} against a ${usd(f.budget)} budget — ${f.variance > 0 ? usd(f.variance) + " over" : usd(-f.variance) + " under"}, status ${f.status}. Spend is dominated by ${s.by_resource_type[0].key} (${usd(s.by_resource_type[0].cost)}, ${(s.by_resource_type[0].share * 100).toFixed(0)}%). Variable burn is ${usd(f.variable_daily_burn)}/day.${anomalyNote}`;
     },
+  },
+  {
+    // True fallback: off-script question in mock mode — say so, call nothing.
+    match: () => true,
+    toolCalls: () => [],
+    narrate: () =>
+      `(Mock mode) I'm the scripted stand-in for the real model and only handle the golden-path questions:\n` +
+      `· "How's my spend looking this month?"\n` +
+      `· "Why did my LLM spend spike?"\n` +
+      `· "What would fixing it save?"\n` +
+      `· "Cap the draft_reply budget at $20/mo" (or throttle/commitment questions)\n` +
+      `Run the server without USE_MOCK_LLM (with an API key) for free-form questions.`,
   },
 ];
 
@@ -189,15 +201,19 @@ class MockChatModel implements ChatModel {
     const script = SCRIPTS.find((s) => s.match(question))!;
 
     if (step === 0) {
-      return {
-        stop_reason: "tool_use",
-        content: script.toolCalls(question).map((call, i) => ({
-          type: "tool_use",
-          id: `toolu_mock_${questionIdx}_${i}`,
-          name: call.name,
-          input: call.input,
-        })),
-      };
+      const calls = script.toolCalls(question);
+      // Scripts with no tool calls (the off-script fallback) answer directly.
+      if (calls.length > 0) {
+        return {
+          stop_reason: "tool_use",
+          content: calls.map((call, i) => ({
+            type: "tool_use",
+            id: `toolu_mock_${questionIdx}_${i}`,
+            name: call.name,
+            input: call.input,
+          })),
+        };
+      }
     }
 
     // Narration step: collect tool results from the conversation since the question.
@@ -219,10 +235,13 @@ class MockChatModel implements ChatModel {
         }
       }
     }
-    return {
-      stop_reason: "end_turn",
-      content: [{ type: "text", text: script.narrate(results, question) }],
-    };
+    let text: string;
+    try {
+      text = script.narrate(results, question);
+    } catch (err) {
+      text = `(Mock mode) I couldn't template a narration from the tool results (${String(err)}). The tool calls themselves succeeded — check the inline artifacts above.`;
+    }
+    return { stop_reason: "end_turn", content: [{ type: "text", text }] };
   }
 }
 
