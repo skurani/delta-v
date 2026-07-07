@@ -5,7 +5,7 @@ import type { AttributionResult, Rollup } from "../attribution";
 import { topEntries } from "../attribution";
 import { pct, usd2 } from "./format";
 
-function BreakdownCard({
+export function BreakdownCard({
   title,
   dim,
   limit = 6,

@@ -1,6 +1,9 @@
-// Dashboard (SPEC.md §5 screen 1): spend, attribution, forecast vs budget.
-// The "as of day" scrubber re-runs metering + attribution + forecast on the
-// events up to that day, so every number is honest for that point in time.
+// App shell: Chat is the primary surface (SPEC §5 evolved), the dashboard
+// remains as the supporting view. Both share one world-state — the as-of-day
+// scrubber and the (fake, labeled) role toggle live in the top bar.
+// The "as of day" scrubber re-runs metering + attribution + forecast +
+// detection on the events up to that day, so every number is honest for
+// that point in time — in both views.
 
 import { useEffect, useMemo, useState } from "react";
 import { detectAnomalies } from "../anomaly";
@@ -11,12 +14,13 @@ import type { GeneratorConfig, UsageEvent } from "../schema";
 import { buildWindowSummary } from "../summarize";
 import { AlertCards } from "./AlertCard";
 import { Breakdowns } from "./Breakdowns";
+import { Chat } from "./Chat";
 import { Commitments } from "./Commitments";
 import { MONTHLY_BUDGET } from "./config";
 import { DailyCharts } from "./DailyCharts";
 import { ForecastCard } from "./ForecastCard";
-import { ReasoningPanel } from "./ReasoningPanel";
 import { usd, usd2 } from "./format";
+import { ReasoningPanel } from "./ReasoningPanel";
 
 interface DataFile {
   generated_at: string;
@@ -24,10 +28,15 @@ interface DataFile {
   events: UsageEvent[];
 }
 
+type Tab = "chat" | "dashboard";
+type Role = "member" | "admin";
+
 export function App() {
   const [data, setData] = useState<DataFile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [asOfIndex, setAsOfIndex] = useState<number | null>(null);
+  const [tab, setTab] = useState<Tab>("chat");
+  const [role, setRole] = useState<Role>("member");
 
   useEffect(() => {
     fetch("/usage-events.json")
@@ -41,7 +50,6 @@ export function App() {
     [data],
   );
 
-  // Default the scrubber to the last day with data.
   const dayIndex = asOfIndex ?? allDays.length - 1;
   const asOfDay = allDays[dayIndex] ?? "";
 
@@ -58,8 +66,7 @@ export function App() {
       asOfDay,
       MONTHLY_BUDGET,
     );
-    // Detection sees only elapsed days, so the scrubber replays alerts
-    // exactly as they would have unfolded (no lookahead).
+    // Detection sees only elapsed days — no lookahead.
     const alerts = detectAnomalies(metered.events, allDays.slice(0, allDays.indexOf(asOfDay) + 1));
     const summary = buildWindowSummary(data.config, metered, attributed, fc, alerts);
     return { metered, attributed, fc, alerts, summary };
@@ -76,53 +83,82 @@ export function App() {
         <div>
           <h1>AI Spend Governor</h1>
           <span className="subtitle">
-            preset: {data.config.preset} · {data.config.customer_id} / {data.config.team_id} ·{" "}
-            {allDays.length}-day window
+            {data.config.preset} · {data.config.customer_id} / {data.config.team_id}
           </span>
         </div>
-        <label className="scrubber">
-          <span>
-            as of <strong>{asOfDay}</strong> (day {fc.daysElapsed} of {fc.daysTotal})
-          </span>
-          <input
-            type="range"
-            min={0}
-            max={allDays.length - 1}
-            value={dayIndex}
-            onChange={(e) => setAsOfIndex(Number(e.target.value))}
-          />
-        </label>
+        <nav className="tabs">
+          <button className={`tab ${tab === "chat" ? "tab-active" : ""}`} onClick={() => setTab("chat")}>
+            Chat
+          </button>
+          <button
+            className={`tab ${tab === "dashboard" ? "tab-active" : ""}`}
+            onClick={() => setTab("dashboard")}
+          >
+            Dashboard
+          </button>
+        </nav>
+        <div className="topbar-controls">
+          <label className="scrubber">
+            <span>
+              as of <strong>{asOfDay}</strong> (day {fc.daysElapsed} of {fc.daysTotal})
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={allDays.length - 1}
+              value={dayIndex}
+              onChange={(e) => setAsOfIndex(Number(e.target.value))}
+            />
+          </label>
+          <label className="role-toggle">
+            <span className="subtitle">role</span>
+            <button
+              className={`chip role-chip ${role === "admin" ? "role-admin" : ""}`}
+              onClick={() => setRole(role === "member" ? "admin" : "member")}
+              title="Fake auth for the guardrail demo — toggles the role sent with each chat request"
+              type="button"
+            >
+              {role}
+            </button>
+          </label>
+        </div>
       </header>
 
-      <section className="kpis">
-        <div className="kpi">
-          <span className="kpi-label">Spend to date</span>
-          <span className="kpi-value">{usd2(fc.spendToDate)}</span>
-        </div>
-        <div className="kpi">
-          <span className="kpi-label">Projected month-end</span>
-          <span className={`kpi-value status-${fc.status}`}>{usd2(fc.projectedTotal)}</span>
-        </div>
-        <div className="kpi">
-          <span className="kpi-label">Budget</span>
-          <span className="kpi-value">{usd(fc.budget)}</span>
-        </div>
-        <div className="kpi">
-          <span className="kpi-label">Variable burn / day</span>
-          <span className="kpi-value">{usd2(fc.variableDailyBurn)}</span>
-        </div>
-        <div className="kpi">
-          <span className="kpi-label">Events metered</span>
-          <span className="kpi-value">{metered.events.length.toLocaleString()}</span>
-        </div>
-      </section>
+      {tab === "chat" && <Chat role={role} asOfDay={asOfDay} />}
 
-      <AlertCards alerts={alerts} />
-      <ReasoningPanel summary={summary} />
-      <ForecastCard fc={fc} />
-      <DailyCharts events={metered.events} asOfDay={asOfDay} />
-      <Commitments commitments={metered.commitments} />
-      <Breakdowns attributed={attributed} />
+      {tab === "dashboard" && (
+        <>
+          <section className="kpis">
+            <div className="kpi">
+              <span className="kpi-label">Spend to date</span>
+              <span className="kpi-value">{usd2(fc.spendToDate)}</span>
+            </div>
+            <div className="kpi">
+              <span className="kpi-label">Projected month-end</span>
+              <span className={`kpi-value status-${fc.status}`}>{usd2(fc.projectedTotal)}</span>
+            </div>
+            <div className="kpi">
+              <span className="kpi-label">Budget</span>
+              <span className="kpi-value">{usd(fc.budget)}</span>
+            </div>
+            <div className="kpi">
+              <span className="kpi-label">Variable burn / day</span>
+              <span className="kpi-value">{usd2(fc.variableDailyBurn)}</span>
+            </div>
+            <div className="kpi">
+              <span className="kpi-label">Events metered</span>
+              <span className="kpi-value">{metered.events.length.toLocaleString()}</span>
+            </div>
+          </section>
+
+          <AlertCards alerts={alerts} />
+          <ReasoningPanel summary={summary} />
+          <ForecastCard fc={fc} />
+          <DailyCharts events={metered.events} asOfDay={asOfDay} />
+          <Commitments commitments={metered.commitments} />
+          <Breakdowns attributed={attributed} />
+        </>
+      )}
     </div>
   );
 }

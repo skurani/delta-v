@@ -1,15 +1,19 @@
-// Thin reasoning server (SPEC.md §4d + §6). Holds the Anthropic API key —
-// the frontend never sees it. ONE batched call per analysis window:
-//   POST /api/reason  { summary: WindowSummary }  →  { cached, analysis }
+// Thin agent server (SPEC.md §4d/§4e + §6). Holds the Anthropic API key —
+// the frontend never sees it. Two endpoints:
 //
-// Responses are cached on disk keyed by a hash of (model + summary), so
-// re-demoing the same window never re-calls the API. Prompt caching
-// (cache_control) is deliberately NOT used here: the prompt is far below
-// Opus 4.8's 4096-token cacheable minimum, and the file cache already
-// eliminates repeat calls entirely.
+//   POST /api/reason  { summary }                      → one batched analysis (cached)
+//   POST /api/chat    { messages, role, as_of_day }    → agent loop with tools
 //
-//   npm run reason        (needs ANTHROPIC_API_KEY in .env, exported, or an
-//                          `ant auth login` profile — the SDK resolves all three)
+// The chat loop: model decides which tools to call → server executes them
+// against the real event data (guardrail checks inside the action tools) →
+// model narrates. History is client-held (stateless server); the client
+// echoes the full message array back each turn, thinking blocks included.
+//
+// USE_MOCK_LLM=true swaps the model for a scripted mock with the identical
+// response shape — the loop, tools, guardrail, and UI run unchanged.
+//
+//   npm run reason        (ANTHROPIC_API_KEY in .env / exported / ant profile,
+//                          or USE_MOCK_LLM=true for the free deterministic path)
 
 import Anthropic from "@anthropic-ai/sdk";
 import { createHash } from "node:crypto";
@@ -17,14 +21,17 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createChatModel, MODEL_ID, mockAnalysis, USE_MOCK, type AgentBlock } from "./llm";
+import type { Role } from "./policy";
+import { createToolExecutor, type ToolEvent } from "./tools";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CACHE_FILE = join(ROOT, "data", "reasoning-cache.json");
+const DATA_FILE = join(ROOT, "data", "usage-events.json");
 const PORT = 8787;
-const MODEL = "claude-opus-4-8";
+const MAX_TOOL_ITERATIONS = 8;
 
-// Minimal .env loader (no dependency): only fills vars not already set, so
-// an exported key or an `ant auth login` profile still wins.
+// Minimal .env loader (no dependency): only fills vars not already set.
 const envFile = join(ROOT, ".env");
 if (existsSync(envFile)) {
   for (const line of readFileSync(envFile, "utf8").split("\n")) {
@@ -33,54 +40,41 @@ if (existsSync(envFile)) {
   }
 }
 
-const client = new Anthropic(); // resolves ANTHROPIC_API_KEY / auth profile
+const chatModel = createChatModel();
+const tools = createToolExecutor(DATA_FILE);
 
-// Structured output schema (SPEC §4d: finding + explanation + ranked
-// recommendations + estimated impact). additionalProperties:false is
-// required on every object by the structured-outputs contract.
+const CHAT_SYSTEM_PROMPT = `You are AI Spend Governor, a FinOps agent that observes a workload's metered spend. You answer through TOOLS that compute from the real event data.
+
+Non-negotiable rules:
+- Math for the meter, LLM for the judgment: NEVER compute, estimate, or extrapolate a figure yourself — not even arithmetic on numbers you already have. If a figure is needed, call the tool that provides it (get_routing_economics exists precisely so savings estimates are computed, not guessed). Quote tool numbers exactly.
+- Default posture is RECOMMEND. Call action tools (cap_budget, throttle_workload) only when the user explicitly asks to act.
+- Every action is checked by a deterministic guardrail before executing. When a verdict comes back "hold", that is a correct, successful outcome — report it plainly using the policy numbers in the result (role, estimated impact, authority limit), and do not apologize for it or try to work around it.
+- Anomalies flagged visible_at_invoice_level: false deserve the point: the blended invoice would have missed this — per-slice metering is why it was caught.
+- Be direct and concrete. Cite the window day range when relevant. No filler.`;
+
+// ---------------------------------------------------------------------------
+// /api/reason — one batched analysis per window (unchanged behavior + mock)
+// ---------------------------------------------------------------------------
+
 const ANALYSIS_SCHEMA = {
   type: "object",
   additionalProperties: false,
   required: ["finding", "explanation", "recommendations"],
   properties: {
-    finding: {
-      type: "string",
-      description: "One-sentence headline of the most important cost issue in this window",
-    },
-    explanation: {
-      type: "string",
-      description: "Why this happened, grounded in the specific numbers provided",
-    },
+    finding: { type: "string", description: "One-sentence headline of the most important cost issue" },
+    explanation: { type: "string", description: "Why, grounded in the specific numbers provided" },
     recommendations: {
       type: "array",
-      description: "Ranked, most impactful first",
       items: {
         type: "object",
         additionalProperties: false,
-        required: [
-          "title",
-          "action",
-          "rationale",
-          "estimated_monthly_savings_usd",
-          "pricing_model",
-          "priority",
-        ],
+        required: ["title", "action", "rationale", "estimated_monthly_savings_usd", "pricing_model", "priority"],
         properties: {
           title: { type: "string" },
-          action: { type: "string", description: "The concrete change to make" },
-          rationale: {
-            type: "string",
-            description: "Why, showing the arithmetic from the provided figures",
-          },
-          estimated_monthly_savings_usd: {
-            type: "number",
-            description: "Derived only from figures in the summary; 0 if not quantifiable",
-          },
-          pricing_model: {
-            type: "string",
-            enum: ["per_token", "per_call", "committed", "flat"],
-            description: "Which pricing lever this recommendation pulls",
-          },
+          action: { type: "string" },
+          rationale: { type: "string", description: "Show the arithmetic from the provided figures" },
+          estimated_monthly_savings_usd: { type: "number", description: "Derived only from summary figures; 0 if not quantifiable" },
+          pricing_model: { type: "string", enum: ["per_token", "per_call", "committed", "flat"] },
           priority: { type: "integer", description: "1 = highest" },
         },
       },
@@ -88,16 +82,13 @@ const ANALYSIS_SCHEMA = {
   },
 } as const;
 
-// Frozen system prompt — the volatile window summary goes in the user turn.
-const SYSTEM_PROMPT = `You are the reasoning engine of AI Spend Governor, a FinOps agent. You receive one compact JSON summary of a workload's metered spend window: totals, attribution slices, commitment utilization, a budget forecast, and any detected anomalies (already classified as cost-mix vs volume, with per-slice threshold math).
-
-Your job: identify the single most important finding, explain it plainly, and produce ranked recommendations.
+const REASON_SYSTEM_PROMPT = `You are the reasoning engine of AI Spend Governor, a FinOps agent. You receive one compact JSON summary of a workload's metered spend window.
 
 Rules:
 - Ground every claim in the numbers provided. Never invent figures. Every estimated saving must be derivable from the summary — show the arithmetic in the rationale. If a saving cannot be computed from the data given, set estimated_monthly_savings_usd to 0 and say so.
-- Match each recommendation to its pricing-model lever: per_token → model routing/caching; per_call → batching/caching; committed → right-size the commitment (underutilized = overpaying, projected overage = renegotiate); flat → informational.
-- An anomaly marked visible_at_invoice_level: false means the blended invoice total would NOT have flagged it — worth stating, it is the reason per-slice metering exists.
-- Be direct and concrete. No hedging, no filler.`;
+- Match each recommendation to its pricing-model lever: per_token → routing/caching; per_call → batching/caching; committed → right-size; flat → informational.
+- An anomaly marked visible_at_invoice_level: false means the blended invoice would NOT have flagged it — state that.
+- Be direct and concrete.`;
 
 interface CacheEntry {
   created_at: string;
@@ -118,31 +109,31 @@ function saveCache(cache: Record<string, CacheEntry>) {
   writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 1));
 }
 
-async function analyze(summary: unknown): Promise<{ cached: boolean; entry: CacheEntry }> {
-  const key = createHash("sha256").update(MODEL + JSON.stringify(summary)).digest("hex");
+async function analyzeWindow(summary: unknown): Promise<{ cached: boolean; entry: CacheEntry }> {
+  if (USE_MOCK) {
+    return {
+      cached: false,
+      entry: { created_at: new Date().toISOString(), model: "mock", analysis: mockAnalysis(summary) },
+    };
+  }
+  const key = createHash("sha256").update(MODEL_ID + JSON.stringify(summary)).digest("hex");
   const cache = loadCache();
   if (cache[key]) return { cached: true, entry: cache[key] };
 
+  const client = new Anthropic();
   const response = await client.messages.create({
-    model: MODEL,
+    model: MODEL_ID,
     max_tokens: 16000,
     thinking: { type: "adaptive" },
-    system: SYSTEM_PROMPT,
+    system: REASON_SYSTEM_PROMPT,
     output_config: { format: { type: "json_schema", schema: ANALYSIS_SCHEMA } },
-    messages: [
-      {
-        role: "user",
-        content: `Analyze this cost window:\n${JSON.stringify(summary, null, 1)}`,
-      },
-    ],
+    messages: [{ role: "user", content: `Analyze this cost window:\n${JSON.stringify(summary, null, 1)}` }],
   });
-
   const text = response.content.find((b) => b.type === "text");
   if (!text || text.type !== "text") throw new Error(`no text block (stop: ${response.stop_reason})`);
-
   const entry: CacheEntry = {
     created_at: new Date().toISOString(),
-    model: MODEL,
+    model: MODEL_ID,
     analysis: JSON.parse(text.text),
   };
   cache[key] = entry;
@@ -150,21 +141,85 @@ async function analyze(summary: unknown): Promise<{ cached: boolean; entry: Cach
   return { cached: false, entry };
 }
 
+// ---------------------------------------------------------------------------
+// /api/chat — the agent loop
+// ---------------------------------------------------------------------------
+
+interface ChatRequest {
+  messages: unknown[]; // full API-shaped history, echoed opaquely by the client
+  role?: Role;
+  as_of_day?: string;
+}
+
+async function runAgentLoop(req: ChatRequest) {
+  const role: Role = req.role === "admin" ? "admin" : "member";
+  const ctx = { role, asOfDay: req.as_of_day };
+  const messages = [...req.messages];
+  const toolEvents: ToolEvent[] = [];
+
+  for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
+    const turn = await chatModel.chat(CHAT_SYSTEM_PROMPT, messages);
+    // Append the assistant content verbatim (thinking blocks must replay
+    // unchanged on the same model).
+    messages.push({ role: "assistant", content: turn.content });
+
+    const toolUses = turn.content.filter((b) => b.type === "tool_use");
+    if (turn.stop_reason !== "tool_use" || toolUses.length === 0) {
+      const reply = turn.content
+        .filter((b): b is AgentBlock & { text: string } => b.type === "text")
+        .map((b) => b.text)
+        .join("\n");
+      return { reply, toolEvents, messages, role };
+    }
+
+    // Execute every requested tool; ALL results go back in ONE user message.
+    const results = toolUses.map((block) => {
+      const input = (block.input ?? {}) as Record<string, unknown>;
+      let result: unknown;
+      try {
+        result = tools.execute(String(block.name), input, ctx);
+      } catch (err) {
+        result = { error: String(err) };
+      }
+      toolEvents.push({ tool: String(block.name), input, result });
+      return { type: "tool_result", tool_use_id: block.id, content: JSON.stringify(result) };
+    });
+    messages.push({ role: "user", content: results });
+  }
+
+  return {
+    reply: "I hit the per-turn tool budget before finishing — ask a narrower question.",
+    toolEvents,
+    messages,
+    role,
+  };
+}
+
+// ---------------------------------------------------------------------------
+
 const server = http.createServer(async (req, res) => {
   res.setHeader("content-type", "application/json");
-  if (req.method !== "POST" || req.url !== "/api/reason") {
-    res.writeHead(404).end(JSON.stringify({ error: "POST /api/reason" }));
-    return;
-  }
   const chunks: Buffer[] = [];
   for await (const chunk of req) chunks.push(chunk);
+
   try {
-    const { summary } = JSON.parse(Buffer.concat(chunks).toString("utf8"));
-    if (!summary) throw new Error("body must be { summary: WindowSummary }");
-    const { cached, entry } = await analyze(summary);
-    res.writeHead(200).end(
-      JSON.stringify({ cached, model: entry.model, created_at: entry.created_at, analysis: entry.analysis }),
-    );
+    if (req.method === "POST" && req.url === "/api/reason") {
+      const { summary } = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+      if (!summary) throw new Error("body must be { summary: WindowSummary }");
+      const { cached, entry } = await analyzeWindow(summary);
+      res.writeHead(200).end(
+        JSON.stringify({ cached, model: entry.model, created_at: entry.created_at, analysis: entry.analysis }),
+      );
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/chat") {
+      const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as ChatRequest;
+      if (!Array.isArray(body.messages)) throw new Error("body must be { messages: [...], role?, as_of_day? }");
+      const result = await runAgentLoop(body);
+      res.writeHead(200).end(JSON.stringify(result));
+      return;
+    }
+    res.writeHead(404).end(JSON.stringify({ error: "POST /api/reason or /api/chat" }));
   } catch (err) {
     const status =
       err instanceof Anthropic.AuthenticationError ? 401 :
@@ -175,6 +230,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`AI Spend Governor reasoning server on http://localhost:${PORT}`);
-  console.log(`model: ${MODEL} · cache: ${CACHE_FILE}`);
+  console.log(`AI Spend Governor server on http://localhost:${PORT}`);
+  console.log(`mode: ${USE_MOCK ? "MOCK (USE_MOCK_LLM=true — scripted, free)" : `real (${MODEL_ID})`}`);
+  console.log(`endpoints: POST /api/reason, POST /api/chat`);
 });
