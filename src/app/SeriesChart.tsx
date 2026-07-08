@@ -19,12 +19,12 @@ export interface SeriesResult {
 }
 
 export const CHART_GRID = "#2E2E2E";
-export const CHART_TICK = { fontSize: 10, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" };
+export const CHART_TICK = { fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" };
 export const CHART_TOOLTIP = {
   background: "#191919",
   border: "1px solid #2E2E2E",
   borderRadius: 6,
-  fontSize: 12,
+  fontSize: 13,
   fontFamily: "'IBM Plex Mono', monospace",
   color: "#F2F2F2",
 };

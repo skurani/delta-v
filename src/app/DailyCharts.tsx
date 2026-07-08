@@ -56,7 +56,7 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
         background: "#191919",
         border: "1px solid #2E2E2E",
         borderRadius: 6,
-        fontSize: 12,
+        fontSize: 13,
         fontFamily: "'IBM Plex Mono', monospace",
         color: "#F2F2F2",
       }}
@@ -75,8 +75,8 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={rows} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="#2E2E2E" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 10, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} width={52} />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} width={52} />
               {tooltip}
               {RESOURCE_ORDER.map((t) => (
                 <Bar key={t} dataKey={t} stackId="cost" fill={RESOURCE_COLOR[t]} />
@@ -89,8 +89,8 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={rows} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="#2E2E2E" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 10, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} width={52} />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} width={52} />
               {tooltip}
               <Line
                 type="monotone"

@@ -8,9 +8,9 @@
   color-scheme: dark;
   --bg-page: #0e0e0e;
   --bg-rail: #121212;
-  --bg-panel: #191919;
+  --bg-panel: #1c1c1c;
   --bg-pinned: #161616;
-  --border: #2e2e2e;
+  --border: #343434;
   --border-pinned: #484848;
   --text-1: #f2f2f2;
   --text-2: #8a8a8a;
@@ -32,7 +32,7 @@ body {
   background: var(--bg-page);
   color: var(--text-1);
   font-family: "Schibsted Grotesk", -apple-system, sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -48,7 +48,7 @@ button {
 
 .mono-label {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 400;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -60,14 +60,14 @@ button {
   color: var(--text-2);
 }
 
-/* ---- film grain (14%, never interactive) ---- */
+/* ---- film grain (subtle texture ~5.5%, never interactive) ---- */
 
 .grain {
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  opacity: 0.14;
+  opacity: 0.055;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -113,13 +113,13 @@ button {
 
 .wordmark {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 17px;
   letter-spacing: 0.01em;
 }
 
 .descriptor {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 9.5px;
+  font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-3);
@@ -152,7 +152,7 @@ button {
 .role-seg {
   padding: 5px 14px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-2);
@@ -189,7 +189,7 @@ button {
 
 .chat-hint {
   margin: 0 0 10px;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text-2);
 }
 
@@ -213,7 +213,7 @@ button {
 .chat-bubble {
   padding: 9px 12px;
   border-radius: var(--r-panel);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.5;
   white-space: pre-wrap;
   max-width: 100%;
@@ -262,7 +262,7 @@ button {
   border: 1px solid var(--border);
   background: var(--bg-panel);
   font: inherit;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--text-1);
 }
 
@@ -279,7 +279,7 @@ button {
 
 .chip {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 4px 10px;
@@ -308,7 +308,7 @@ button {
 }
 
 .chip.tool-chip {
-  font-size: 9px;
+  font-size: 10px;
   padding: 2px 7px;
   color: var(--text-3);
 }
@@ -318,7 +318,7 @@ button {
   color: var(--bg-page);
   border-radius: var(--r-btn);
   padding: 8px 16px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   transition: opacity 0.15s;
 }
@@ -444,7 +444,7 @@ button {
 .cell-handle {
   cursor: grab;
   color: var(--text-3);
-  font-size: 11px;
+  font-size: 12px;
   user-select: none;
 }
 
@@ -458,7 +458,7 @@ button {
 
 .cell-dismiss {
   color: var(--text-3);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1;
   transition: color 0.15s;
 }
@@ -473,7 +473,7 @@ button {
 
 .provenance {
   margin: 10px 0 0;
-  font-size: 9.5px;
+  font-size: 10.5px;
   text-transform: none;
   letter-spacing: 0.04em;
   color: var(--text-3);
@@ -524,7 +524,7 @@ button {
 
 .card h2 {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
 }
 
@@ -533,7 +533,7 @@ button {
 .chart-box h3 {
   margin: 0 0 8px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -542,7 +542,7 @@ button {
 
 .subtitle {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-3);
@@ -550,7 +550,7 @@ button {
 
 .fine-print {
   margin: 10px 0 0;
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--text-3);
 }
 
@@ -576,7 +576,7 @@ button {
 
 .kpi-label {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-3);
@@ -584,7 +584,7 @@ button {
 
 .kpi-value {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 20px;
+  font-size: 30px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
@@ -609,7 +609,7 @@ button {
 .alert-why,
 .alert-classification {
   margin: 0 0 8px;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text-2);
 }
 
@@ -629,7 +629,7 @@ button {
   align-items: center;
   gap: 8px;
   padding: 3px 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
@@ -637,7 +637,7 @@ button {
 .chip.driver-chip {
   color: var(--text-3);
   padding: 2px 7px;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 /* ---- forecast gauge (bars: 2px radius) ---- */
@@ -678,7 +678,7 @@ button {
   top: -16px;
   left: -28px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 9.5px;
+  font-size: 10.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-3);
@@ -688,7 +688,7 @@ button {
 .gauge-legend {
   display: flex;
   gap: 16px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
@@ -737,7 +737,7 @@ button {
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 6px;
-  font-size: 12.5px;
+  font-size: 14px;
 }
 
 .commit-track {
@@ -767,7 +767,7 @@ button {
 .commitment-detail {
   margin-top: 4px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
@@ -787,7 +787,7 @@ button {
   gap: 8px;
   padding: 3px 0;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -853,7 +853,7 @@ button {
 
 .guardrail-action {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-2);
 }
 
@@ -862,7 +862,7 @@ button {
   flex-wrap: wrap;
   gap: 4px 16px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
   margin-bottom: 8px;
@@ -870,7 +870,7 @@ button {
 
 .guardrail-reason {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 14px;
 }
 
 /* ---- reasoning panel ---- */
@@ -887,19 +887,19 @@ button {
 
 .reason-error {
   color: var(--neg);
-  font-size: 12.5px;
+  font-size: 14px;
   margin: 8px 0 0;
 }
 
 .reason-finding {
   margin: 4px 0 8px;
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: 500;
 }
 
 .reason-explanation {
   margin: 0 0 12px;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text-2);
 }
 
@@ -917,7 +917,7 @@ button {
 
 .reason-rec-title {
   font-weight: 500;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .chip.pricing-chip {
@@ -927,18 +927,18 @@ button {
 .reason-savings {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-weight: 500;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--pos); /* semantic: money recovered */
   font-variant-numeric: tabular-nums;
 }
 
 .reason-rec-action {
   margin: 6px 0 4px;
-  font-size: 12.5px;
+  font-size: 14px;
 }
 
 .reason-rec-rationale {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--text-2);
 }
