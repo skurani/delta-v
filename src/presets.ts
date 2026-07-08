@@ -23,6 +23,7 @@ export const customerSupportConfig: GeneratorConfig = {
   preset: "customer-support",
   customer_id: "acme-retail",
   team_id: "customer-support",
+  workload_id: "support-agent",
   seed: 20260702,
   days: 30,
   baselineVolumePerDay: 300, // tickets/day
@@ -130,6 +131,7 @@ export const codingAgentConfig: GeneratorConfig = {
   preset: "coding-agent",
   customer_id: "acme-devtools",
   team_id: "platform-eng",
+  workload_id: "coding-agent",
   seed: 20260702,
   days: 30,
   baselineVolumePerDay: 220, // agent tasks/day

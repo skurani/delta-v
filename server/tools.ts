@@ -112,6 +112,7 @@ export function createToolExecutor(dataFile: string) {
         const dimMap: Record<string, keyof AttributionResult> = {
           resource_type: "byResourceType", provider: "byProvider", model: "byModel",
           feature: "byFeature", team: "byTeam", customer: "byCustomer", user: "byUser", seat: "bySeat",
+          workload: "byWorkload",
         };
         const dimKey = dimMap[dimension];
         if (!dimKey) return { error: `unknown dimension "${dimension}"` };
@@ -203,7 +204,7 @@ export const TOOL_DEFS = [
       properties: {
         dimension: {
           type: "string",
-          enum: ["resource_type", "provider", "model", "feature", "team", "customer", "user", "seat"],
+          enum: ["resource_type", "provider", "model", "feature", "team", "customer", "user", "seat", "workload"],
         },
         limit: { type: "integer", description: "max entries, default 8" },
       },

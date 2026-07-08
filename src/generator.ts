@@ -73,6 +73,7 @@ export function generateEvents(config: GeneratorConfig): UsageEvent[] {
   const base = {
     customer_id: config.customer_id,
     team_id: config.team_id,
+    workload_id: config.workload_id,
   };
 
   for (let day = 0; day < config.days; day++) {
@@ -147,7 +148,7 @@ function makeStepEvent(
   ts: string,
   intensity: number,
   rand: () => number,
-  base: { customer_id: string; team_id: string },
+  base: { customer_id: string; team_id: string; workload_id: string },
   user_id: string | null,
 ): UsageEvent {
   if (step.routing) {

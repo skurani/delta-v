@@ -46,6 +46,7 @@ printDim("BY PROVIDER", attributed.byProvider);
 printDim("BY MODEL", attributed.byModel);
 printDim("BY FEATURE", attributed.byFeature);
 printDim("BY TEAM", attributed.byTeam);
+printDim("BY WORKLOAD", attributed.byWorkload);
 printDim("BY CUSTOMER", attributed.byCustomer);
 printDim("SEAT vs CONSUMPTION", attributed.bySeat);
 printDim("BY USER", attributed.byUser, 12);

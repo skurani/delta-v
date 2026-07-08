@@ -9,6 +9,7 @@ export interface UsageEvent {
   timestamp: string; // ISO datetime
   customer_id: string;
   team_id: string;
+  workload_id: string; // the spending agent/workload (e.g. "support-agent") — a customer/team can run several
   user_id: string | null; // human seat that invoked the agent; null = autonomous/scheduled run
   feature: string; // config-driven step name (SPEC.md §3)
   resource_type: ResourceType;
@@ -87,6 +88,7 @@ export interface GeneratorConfig {
   preset: string;
   customer_id: string;
   team_id: string;
+  workload_id: string; // one preset = one workload for the POC
   seed: number; // deterministic output for a given config
   days: number;
   baselineVolumePerDay: number; // work units (tickets/tasks) per day

@@ -117,7 +117,7 @@ function resolveDailySeries(view: EngineView, input: Record<string, unknown>): S
 
 const DIM_MAP: Record<string, keyof AttributionResult> = {
   resource_type: "byResourceType", provider: "byProvider", model: "byModel",
-  feature: "byFeature", team: "byTeam", customer: "byCustomer", user: "byUser", seat: "bySeat",
+  feature: "byFeature", team: "byTeam", customer: "byCustomer", user: "byUser", seat: "bySeat", workload: "byWorkload",
 };
 
 function PinnedArtifact({ query, view }: { query: PinQuery; view: EngineView }) {

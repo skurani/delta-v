@@ -22,6 +22,7 @@ export interface AttributionResult {
   totalCost: number;
   byCustomer: Record<string, Rollup>;
   byTeam: Record<string, Rollup>;
+  byWorkload: Record<string, Rollup>; // the spending agent/workload
   byUser: Record<string, Rollup>; // named seats + "(autonomous)" for user_id: null
   bySeat: Record<"seat_attributed" | "autonomous", Rollup>; // seat-vs-consumption split
   byFeature: Record<string, Rollup>;
@@ -51,6 +52,7 @@ export function attribute(events: RatedEvent[]): AttributionResult {
     totalCost: round2(totalCost),
     byCustomer: rollup(events, (e) => e.customer_id),
     byTeam: rollup(events, (e) => e.team_id),
+    byWorkload: rollup(events, (e) => e.workload_id),
     byUser: rollup(events, (e) => e.user_id ?? "(autonomous)"),
     bySeat: rollup(events, (e) => (e.user_id ? "seat_attributed" : "autonomous")) as Record<
       "seat_attributed" | "autonomous",
@@ -66,6 +68,7 @@ export function attribute(events: RatedEvent[]): AttributionResult {
   for (const dim of [
     result.byCustomer,
     result.byTeam,
+    result.byWorkload,
     result.byUser,
     result.bySeat,
     result.byFeature,
