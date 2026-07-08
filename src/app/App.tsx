@@ -96,6 +96,11 @@ export function App() {
         onScrub={setAsOfIndex}
         role={role}
         onRoleChange={setRole}
+        context={{
+          customerId: data.config.customer_id,
+          teamId: data.config.team_id,
+          workloadId: data.config.workload_id,
+        }}
       />
       <div className="main">
         <Chat

@@ -21,6 +21,7 @@ export function TopBar({
   onScrub,
   role,
   onRoleChange,
+  context,
 }: {
   asOfDay: string;
   dayIndex: number;
@@ -30,6 +31,7 @@ export function TopBar({
   onScrub: (index: number) => void;
   role: Role;
   onRoleChange: (role: Role) => void;
+  context: { customerId: string; teamId: string; workloadId: string };
 }) {
   return (
     <header className="topbar">
@@ -41,6 +43,9 @@ export function TopBar({
         </div>
       </div>
       <div className="topbar-controls">
+        <span className="context-line mono-label" title="customer / team / workload">
+          {context.customerId} / {context.teamId} / {context.workloadId}
+        </span>
         <label className="scrubber">
           <span className="mono-label">
             as of {asOfDay} · day {daysElapsed}/{daysTotal}
