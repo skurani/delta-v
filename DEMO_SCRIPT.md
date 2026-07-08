@@ -22,6 +22,10 @@ Open the app. The chat dock is always on the left; role **FinOps** (the
 default — cannot execute actions), scrubber at the last day. The four suggested chips under the empty chat ARE the golden path — you
 can click them in order instead of typing.
 
+> Numbers below are for the currently generated data; `npm run generate`
+> re-anchors the 30-day window to today, so exact figures drift a few percent
+> between regenerations (the shape of every beat is stable).
+>
 > Mock mode is honest about what it fakes: the model's *decision-making* is
 > scripted, but every number in every answer comes from the real engine via
 > real tool calls — same tool executor, same guardrail, same charts.
@@ -46,10 +50,10 @@ just the total — it already flagged something."
 *(fallbacks: "what happened last week?", "tell me about that anomaly")*
 
 **Expect:** tools `get_anomalies` + `get_daily_series(llm)` → inline anomaly
-card + LLM spike chart. Narration: LLM spend peaked at **3.5× the trailing
-14-day median** ($14.07 vs $4.04), cost-per-event up 2.3× → **cost-mix
-anomaly**, drivers claude-opus-4-8 (4.9×) and draft_reply (4.1×) — and the
-kicker: *the blended daily total moved only 1.14× — invisible at the invoice
+card + LLM spike chart. Narration: LLM spend peaked at **~3× the trailing
+14-day median** ($12.17 vs $4.07), cost-per-event up 2.2× → **cost-mix
+anomaly**, drivers claude-opus-4-8 (4.4×) and draft_reply (3.6×) — and the
+kicker: *the blended daily total moved only 1.08× — invisible at the invoice
 level.*
 
 **Say:** "A product outage flooded the queue with hard tickets and everything
@@ -63,7 +67,7 @@ routed to the frontier model. Your invoice would never have shown this."
 **Expect:** tool `get_routing_economics(draft_reply)`. Narration quotes the
 engine's counterfactual: opus carries ~84% of draft_reply's cost from a
 minority of calls; at the same token volume on gpt-5-mini the window would
-cost ~$23 instead of ~$101 — **~$76/mo estimated savings, computed not
+cost ~$22 instead of ~$98 — **~$74/mo estimated savings, computed not
 guessed** — plus the
 engine's own caveat about quality on hard cases. Posture: recommendation only.
 
@@ -78,8 +82,8 @@ engine's own caveat about quality on hard cases. Posture: recommendation only.
 *(fallbacks: "enforce a $20 cap on draft_reply", "limit the draft_reply spend to 20 dollars")*
 
 **Expect:** tool `cap_budget(draft_reply, 20)` → **red guardrail card: ACTION
-HELD — ESCALATED.** The policy math is on the card: run-rate ~$98/mo, estimated
-impact ~$78/mo, authority limit $50/mo, role FinOps (requires Eng). The agent
+HELD — ESCALATED.** The policy math is on the card: run-rate ~$95/mo, estimated
+impact ~$75/mo, authority limit $50/mo, role FinOps (requires Eng). The agent
 explains the hold without apologizing and nothing was changed.
 
 **Say:** "The agent *tried* to act, and a deterministic policy check — not the
@@ -91,7 +95,7 @@ theater."
 
 Toggle role to **Eng**, then ask: `Cap the draft_reply budget at $70/mo`
 
-**Expect:** green guardrail card: **ACTION EXECUTED** — impact ~$28/mo is
+**Expect:** green guardrail card: **ACTION EXECUTED** — impact ~$25/mo is
 within the $50 authority limit and the role is Eng. (Simulated: the cap is
 recorded in the server's action log; no live workload is modified — the card
 says so.)
