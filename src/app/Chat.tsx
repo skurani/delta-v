@@ -1,24 +1,17 @@
-// Chat — the primary surface. The agent decides which engine tools to call;
-// the server executes them against the real data; results render inline as
-// the same chart components the dashboard uses. History is client-held and
-// echoed opaquely (full API message shapes, thinking blocks included).
+// Chat dock — the permanent left rail. The agent decides which engine tools
+// to call; the server executes them; results render inline as artifacts.
+// Pinnable artifacts (series, attribution, anomalies) carry a PIN button
+// (primary path) and are draggable onto the canvas (enhancement). History is
+// client-held in App state and echoed opaquely (thinking blocks included).
 
 import { useState, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import type { AnomalyAlert } from "../anomaly";
 import type { Rollup } from "../attribution";
 import { AlertCards } from "./AlertCard";
 import { BreakdownCard } from "./Breakdowns";
-import { shortDay, usd2 } from "./format";
+import { PIN_DRAG_MIME, type PinQuery, type Provenance } from "./Canvas";
 import { GuardrailCard, type ActionResult } from "./GuardrailCard";
+import { SeriesChart, type SeriesResult } from "./SeriesChart";
 
 interface ToolEvent {
   tool: string;
@@ -26,8 +19,8 @@ interface ToolEvent {
   result: unknown;
 }
 
-// Conversation state lives in App (above the tab switch), so toggling
-// Chat → Dashboard → Chat never unmounts it away.
+// Conversation state lives in App (above the layout), so nothing here is
+// lost to re-renders elsewhere.
 export interface DisplayTurn {
   who: "user" | "agent";
   text: string;
@@ -41,46 +34,25 @@ const SUGGESTIONS = [
   "Cap the draft_reply budget at $20/mo",
 ];
 
-function SeriesChart({ result }: { result: { key: string; series: { day: string; cost: number }[] } }) {
-  const data = result.series.map((p) => ({ ...p, day: shortDay(p.day) }));
-  return (
-    <div className="chat-chart">
-      <h3>daily cost — {result.key}</h3>
-      <ResponsiveContainer width="100%" height={160}>
-        <LineChart data={data} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
-          <CartesianGrid stroke="rgba(0, 0, 0, 0.08)" vertical={false} />
-          <XAxis dataKey="day" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-          <YAxis tick={{ fontSize: 10 }} width={46} />
-          <Tooltip
-            formatter={(value) => [usd2(Number(value ?? 0)), "cost"]}
-            contentStyle={{
-              background: "#FFFFFF",
-              border: "1px solid rgba(0, 0, 0, 0.12)",
-              borderRadius: 10,
-              fontSize: 12,
-            }}
-          />
-          <Line type="monotone" dataKey="cost" stroke="#DF68EB" strokeWidth={2} dot={false} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
+const PINNABLE = new Set(["get_daily_series", "get_attribution", "get_anomalies"]);
+
+function isPinnable(event: ToolEvent): boolean {
+  if (!PINNABLE.has(event.tool)) return false;
+  if (event.tool === "get_anomalies") return Array.isArray(event.result) && event.result.length > 0;
+  const r = event.result as Record<string, unknown> | null;
+  return r !== null && !(typeof r === "object" && "error" in r);
 }
 
-function ToolArtifact({ event }: { event: ToolEvent }) {
+function ArtifactBody({ event }: { event: ToolEvent }) {
   const r = event.result as Record<string, unknown> | unknown[] | null;
-  if (r === null || (typeof r === "object" && "error" in (r as object))) return null;
+  if (r === null || (typeof r === "object" && !Array.isArray(r) && "error" in r)) return null;
   switch (event.tool) {
     case "get_daily_series":
-      return <SeriesChart result={event.result as { key: string; series: { day: string; cost: number }[] }} />;
+      return <SeriesChart result={event.result as SeriesResult} height={120} />;
     case "get_attribution": {
       const res = event.result as { dimension: string; entries: ({ key: string } & Rollup)[] };
       const dim = Object.fromEntries(res.entries.map(({ key, ...rollup }) => [key, rollup]));
-      return (
-        <div className="chat-chart">
-          <BreakdownCard title={`by ${res.dimension}`} dim={dim} />
-        </div>
-      );
+      return <BreakdownCard title={`by ${res.dimension}`} dim={dim} />;
     }
     case "get_anomalies": {
       const alerts = event.result as AnomalyAlert[];
@@ -94,18 +66,65 @@ function ToolArtifact({ event }: { event: ToolEvent }) {
   }
 }
 
+function ToolArtifact({
+  event,
+  chatQuery,
+  asOfDay,
+  onPin,
+}: {
+  event: ToolEvent;
+  chatQuery: string;
+  asOfDay: string;
+  onPin: (query: PinQuery, provenance: Provenance) => void;
+}) {
+  const body = ArtifactBody({ event });
+  if (body === null) return null;
+
+  if (!isPinnable(event)) return <div className="artifact">{body}</div>;
+
+  const query: PinQuery = { tool: event.tool as PinQuery["tool"], input: event.input };
+  const provenance: Provenance = {
+    chatQuery,
+    pinnedAsOf: asOfDay,
+    pinnedAt: new Date().toISOString(),
+  };
+  return (
+    <div className="artifact artifact-pinnable">
+      <div
+        className="artifact-head"
+        draggable
+        title="drag onto the canvas, or use PIN"
+        onDragStart={(e) => {
+          e.dataTransfer.setData(PIN_DRAG_MIME, JSON.stringify({ query, provenance }));
+          e.dataTransfer.effectAllowed = "copy";
+        }}
+      >
+        <span className="mono-label">{event.tool}</span>
+        <button className="pin-btn mono-label" type="button" onClick={() => onPin(query, provenance)}>
+          pin
+        </button>
+      </div>
+      {body}
+    </div>
+  );
+}
+
 export function Chat({
   role,
+  roleLabel,
   asOfDay,
   turns,
   setTurns,
   apiMessages,
+  onPin,
 }: {
   role: "admin" | "member";
+  roleLabel: string;
   asOfDay: string;
   turns: DisplayTurn[];
   setTurns: Dispatch<SetStateAction<DisplayTurn[]>>;
   apiMessages: MutableRefObject<unknown[]>;
+  onPin: (query: PinQuery, provenance: Provenance) => void;
 }) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -152,18 +171,24 @@ export function Chat({
     }
   }
 
+  /** The user question that produced the agent turn at index i. */
+  const queryFor = (i: number): string => {
+    for (let j = i - 1; j >= 0; j--) if (turns[j].who === "user") return turns[j].text;
+    return "";
+  };
+
   return (
-    <div className="chat">
+    <aside className="chat-dock">
       <div className="chat-log">
         {turns.length === 0 && (
           <div className="chat-empty">
-            <p className="fine-print">
+            <p className="chat-hint">
               Ask about the workload's spend. The agent answers by calling the metering engine —
               it never invents numbers. Actions run through a guardrail. Try:
             </p>
             <div className="chat-suggestions">
               {SUGGESTIONS.map((s) => (
-                <button key={s} className="chip suggestion-chip" onClick={() => send(s)}>
+                <button key={s} className="chip suggestion-chip" onClick={() => send(s)} type="button">
                   {s}
                 </button>
               ))}
@@ -182,14 +207,20 @@ export function Chat({
               </div>
             )}
             <div className="chat-bubble">{turn.text}</div>
-            {turn.toolEvents?.map((e, j) => <ToolArtifact key={j} event={e} />)}
+            {turn.toolEvents?.map((e, j) => (
+              <ToolArtifact key={j} event={e} chatQuery={queryFor(i)} asOfDay={asOfDay} onPin={onPin} />
+            ))}
           </div>
         ))}
-        {busy && <div className="chat-turn chat-agent"><div className="chat-bubble chat-thinking">Working…</div></div>}
+        {busy && (
+          <div className="chat-turn chat-agent">
+            <div className="chat-bubble chat-thinking">Working…</div>
+          </div>
+        )}
       </div>
       {turns.length > 0 && (
         <div className="chat-try-row">
-          <span className="subtitle">try also</span>
+          <span className="mono-label">try also</span>
           {SUGGESTIONS.map((s) => (
             <button
               key={s}
@@ -213,14 +244,14 @@ export function Chat({
         <input
           className="chat-input"
           value={input}
-          placeholder={`Ask about spend (as of ${asOfDay}, acting as ${role})…`}
+          placeholder={`Ask (as of ${asOfDay}, as ${roleLabel})…`}
           onChange={(e) => setInput(e.target.value)}
           disabled={busy}
         />
-        <button className="btn btn-primary" type="submit" disabled={busy || !input.trim()}>
+        <button className="btn" type="submit" disabled={busy || !input.trim()}>
           Send
         </button>
       </form>
-    </div>
+    </aside>
   );
 }

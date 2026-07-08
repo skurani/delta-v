@@ -1,4 +1,4 @@
-# AI Spend Governor — Golden-Path Demo Script
+# Delta-V (AI Spend Governor) — Golden-Path Demo Script
 
 A documented ~4-question sequence that reliably lands the story and culminates
 in the guardrailed-action moment. Chat is non-deterministic on the real model,
@@ -18,8 +18,8 @@ USE_MOCK_LLM=true npm run reason      # free, deterministic (scripted decisions,
 npm run dev
 ```
 
-Open the app. **Chat** tab, role **member** (the default), scrubber at the last
-day. The four suggested chips under the empty chat ARE the golden path — you
+Open the app. The chat dock is always on the left; role **FinOps** (the
+default — cannot execute actions), scrubber at the last day. The four suggested chips under the empty chat ARE the golden path — you
 can click them in order instead of typing.
 
 > Mock mode is honest about what it fakes: the model's *decision-making* is
@@ -72,14 +72,14 @@ engine's own caveat about quality on hard cases. Posture: recommendation only.
 
 ## Beat 4 — THE GUARDRAIL (climax)
 
-**Role: member** (the default — don't touch the toggle).
+**Role: FinOps** (the default — don't touch the toggle).
 
 **Ask:** `Cap the draft_reply budget at $20/mo`
 *(fallbacks: "enforce a $20 cap on draft_reply", "limit the draft_reply spend to 20 dollars")*
 
 **Expect:** tool `cap_budget(draft_reply, 20)` → **red guardrail card: ACTION
 HELD — ESCALATED.** The policy math is on the card: run-rate ~$98/mo, estimated
-impact ~$78/mo, authority limit $50/mo, role member (requires admin). The agent
+impact ~$78/mo, authority limit $50/mo, role FinOps (requires Eng). The agent
 explains the hold without apologizing and nothing was changed.
 
 **Say:** "The agent *tried* to act, and a deterministic policy check — not the
@@ -89,10 +89,10 @@ theater."
 
 ## Beat 5 — coda (both branches, optional)
 
-Toggle role to **admin**, then ask: `Cap the draft_reply budget at $70/mo`
+Toggle role to **Eng**, then ask: `Cap the draft_reply budget at $70/mo`
 
 **Expect:** green guardrail card: **ACTION EXECUTED** — impact ~$28/mo is
-within the $50 authority limit and the role is admin. (Simulated: the cap is
+within the $50 authority limit and the role is Eng. (Simulated: the cap is
 recorded in the server's action log; no live workload is modified — the card
 says so.)
 

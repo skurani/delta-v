@@ -1,25 +1,26 @@
-/* Theme: Drift Audio (driftdsp.com) design tokens, applied to the dashboard.
-   Tokens extracted from the live site's :root — light canvas, Inter for
-   display/body, JetBrains Mono for small uppercase labels, purple accent.
-   (The site names the purple `--orange`; renamed `--accent` here.) */
+/* Delta-V design system (Stage 2a reskin, per the design handoff).
+   Fonts: Schibsted Grotesk (human text) + IBM Plex Mono (labels/values/
+   axes/timestamps/provenance). Signal colors are SEMANTIC ONLY — positive
+   #8CC3F2 / negative #F2968C never decorate. Radii: 6 panels / 3 buttons /
+   2 bars / 999 chips. */
 
 :root {
-  color-scheme: light;
-  --bg: #ffffff;
-  --canvas-2: #f5f5f5;
-  --canvas-3: #ececec;
-  --accent: #df68eb;
-  --accent-deep: #b842c4;
-  --accent-glow: #f0a8f5;
-  --magenta: #ff4d8b;
-  --blue: #0033ff;
-  --ink: #000000;
-  --ink-soft: rgba(0, 0, 0, 0.62);
-  --ink-faint: rgba(0, 0, 0, 0.36);
-  --rule: rgba(0, 0, 0, 0.12);
-  --green: #1f9d63;
-  --amber: #c77e1c;
-  --red: #e23d6d;
+  color-scheme: dark;
+  --bg-page: #0e0e0e;
+  --bg-rail: #121212;
+  --bg-panel: #191919;
+  --bg-pinned: #161616;
+  --border: #2e2e2e;
+  --border-pinned: #484848;
+  --text-1: #f2f2f2;
+  --text-2: #8a8a8a;
+  --text-3: #787878;
+  --pos: #8cc3f2;
+  --neg: #f2968c;
+  --r-panel: 6px;
+  --r-btn: 3px;
+  --r-bar: 2px;
+  --r-chip: 999px;
 }
 
 * {
@@ -28,213 +29,599 @@
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-1);
+  font-family: "Schibsted Grotesk", -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  font-weight: 400;
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
-.app {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 20px 32px 64px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mono-label {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
 }
 
 .load-state {
   padding: 48px;
-  color: var(--ink-soft);
+  color: var(--text-2);
 }
 
-/* ---- header (site nav treatment: sticky, blurred, hairline rule) ---- */
+/* ---- film grain (14%, never interactive) ---- */
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- shell ---- */
+
+.shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: 0;
+}
+
+/* ---- top bar ---- */
 
 .topbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  backdrop-filter: blur(14px);
-  background: color-mix(in oklab, var(--bg) 80%, transparent);
-  border-bottom: 1px solid var(--rule);
-  margin: 0 -32px;
-  padding: 14px 32px;
+  height: 64px;
+  flex: none;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
 }
 
-.topbar h1 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.05;
+.lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-1);
 }
 
-.subtitle {
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+.lockup-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.wordmark {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+}
+
+.descriptor {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--text-3);
+}
+
+.topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .scrubber {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--ink-soft);
-  min-width: 260px;
-}
-
-.scrubber strong {
-  color: var(--ink);
-  font-weight: 600;
+  gap: 3px;
+  min-width: 240px;
 }
 
 .scrubber input {
-  accent-color: var(--accent);
+  accent-color: var(--text-1);
 }
 
-/* ---- KPI row ---- */
-
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
+.role-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--r-chip);
+  overflow: hidden;
 }
 
-.kpi {
-  background: var(--canvas-2);
-  border: 1px solid var(--rule);
-  border-radius: 16px;
-  padding: 12px 16px;
+.role-seg {
+  padding: 5px 14px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  transition: background 0.15s, color 0.15s;
+}
+
+.role-seg-active {
+  background: var(--text-1);
+  color: var(--bg-page);
+}
+
+/* ---- chat dock ---- */
+
+.chat-dock {
+  background: var(--bg-rail);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+  min-height: 0;
 }
 
-.kpi:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--accent) 50%, var(--rule));
-  box-shadow: 0 20px 50px -22px rgba(223, 104, 235, 0.35);
+.chat-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.kpi-label {
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+.chat-empty {
+  padding: 12px 2px;
+}
+
+.chat-hint {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.chat-suggestions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.chat-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-user {
+  align-items: flex-end;
+}
+
+.chat-bubble {
+  padding: 9px 12px;
+  border-radius: var(--r-panel);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+.chat-user .chat-bubble {
+  background: var(--text-1);
+  color: var(--bg-page);
+}
+
+.chat-agent .chat-bubble {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+}
+
+.chat-thinking {
+  color: var(--text-3);
+}
+
+.chat-tools-used {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chat-try-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 14px 0;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: var(--r-btn);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+.chat-input::placeholder {
+  color: var(--text-3);
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: var(--text-2);
+}
+
+/* ---- chips / buttons ---- */
+
+.chip {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  padding: 4px 10px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--border);
+  color: var(--text-2);
 }
 
-.kpi-value {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  font-variant-numeric: tabular-nums;
+.chip.suggestion-chip {
+  cursor: pointer;
+  background: var(--bg-panel);
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  transition: color 0.15s, border-color 0.15s;
 }
 
-/* ---- cards ---- */
+.chip.suggestion-chip:hover:not(:disabled) {
+  color: var(--text-1);
+  border-color: var(--text-3);
+}
+
+.chip.suggestion-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.chip.tool-chip {
+  font-size: 9px;
+  padding: 2px 7px;
+  color: var(--text-3);
+}
+
+.btn {
+  background: var(--text-1);
+  color: var(--bg-page);
+  border-radius: var(--r-btn);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-primary {
+  /* same neutral treatment — signal colors never decorate controls */
+  background: var(--text-1);
+  color: var(--bg-page);
+}
+
+.text-btn {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.text-btn:hover {
+  color: var(--text-1);
+}
+
+/* ---- chat artifacts + pin ---- */
+
+.artifact {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-panel);
+  padding: 10px 12px;
+}
+
+.artifact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -2px 0 8px;
+  cursor: grab;
+}
+
+.pin-btn {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: var(--r-chip);
+  padding: 3px 10px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.pin-btn:hover {
+  color: var(--text-1);
+  border-color: var(--text-3);
+}
+
+/* ---- canvas ---- */
+
+.canvas {
+  overflow-y: auto;
+  padding: 24px;
+  min-height: 0;
+}
+
+.canvas-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.canvas-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.span-3 { grid-column: span 3; }
+.span-4 { grid-column: span 4; }
+.span-6 { grid-column: span 6; }
+.span-8 { grid-column: span 8; }
+.span-12 { grid-column: span 12; }
+
+@media (max-width: 1100px) {
+  .span-3, .span-4 { grid-column: span 6; }
+  .span-6, .span-8 { grid-column: span 12; }
+}
+
+.cell {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-panel);
+  min-width: 0;
+}
+
+.cell-pinned {
+  background: var(--bg-pinned);
+  border: 1px dashed var(--border-pinned);
+}
+
+.cell-drop-before {
+  outline: 1px dashed var(--text-1);
+  outline-offset: 3px;
+}
+
+.cell-chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cell-pinned .cell-chrome {
+  border-bottom-color: var(--border-pinned);
+  border-bottom-style: dashed;
+}
+
+.cell-handle {
+  cursor: grab;
+  color: var(--text-3);
+  font-size: 11px;
+  user-select: none;
+}
+
+.cell-handle:active {
+  cursor: grabbing;
+}
+
+.cell-title {
+  flex: 1;
+}
+
+.cell-dismiss {
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.cell-dismiss:hover {
+  color: var(--text-1);
+}
+
+.cell-body {
+  padding: 12px 14px;
+}
+
+.provenance {
+  margin: 10px 0 0;
+  font-size: 9.5px;
+  text-transform: none;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+
+/* Inner components keep their own .card markup; inside a cell the cell IS
+   the panel, so neutralize the nested chrome and static duplicate titles.
+   Alert cards keep theirs — their headings carry live information. */
+
+.cell .card {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.cell .card > .card-head > h2 {
+  display: none;
+}
+
+.cell .alert-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: var(--r-panel);
+  padding: 12px 14px;
+}
+
+.cell .alert-card .card-head h2 {
+  display: block;
+}
+
+/* ---- generic card (chat artifacts, standalone) ---- */
 
 .card {
-  background: var(--canvas-2);
-  border: 1px solid var(--rule);
-  border-radius: 16px;
-  padding: 18px 20px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-panel);
+  padding: 14px 16px;
 }
 
 .card-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .card h2 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -0.025em;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.card h3 {
+.card h3,
+.series-chart h3,
+.chart-box h3 {
   margin: 0 0 8px;
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--text-2);
+}
+
+.subtitle {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
 }
 
 .fine-print {
   margin: 10px 0 0;
-  font-size: 12px;
-  color: var(--ink-faint);
+  font-size: 11.5px;
+  color: var(--text-3);
 }
 
-/* Site pill/tag treatment: mono, uppercase, 1px currentColor border */
-.chip {
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+/* ---- signal semantics (the ONLY places pos/neg appear) ---- */
+
+.status-under { color: var(--pos); }
+.status-over { color: var(--neg); }
+.status-near { color: var(--text-1); } /* approaching = fact, not yet a signal */
+
+/* ---- KPIs ---- */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpi-label {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid currentColor;
+  color: var(--text-3);
+}
+
+.kpi-value {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 20px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---- anomaly alert cards ---- */
 
 .alert-card {
-  border-width: 1px;
-  border-left-width: 4px;
+  border-left-width: 3px;
 }
 
-.alert-card.alert-cost_mix {
-  border-color: color-mix(in oklab, var(--red) 55%, var(--rule));
-  background: color-mix(in oklab, var(--red) 4%, var(--canvas-2));
-}
-
+.alert-card.alert-cost_mix,
 .alert-card.alert-volume {
-  border-color: color-mix(in oklab, var(--amber) 55%, var(--rule));
-  background: color-mix(in oklab, var(--amber) 4%, var(--canvas-2));
+  border-left-color: var(--neg);
 }
 
-.chip.alert-chip-cost_mix {
-  color: var(--red);
-}
-
+.chip.alert-chip-cost_mix,
 .chip.alert-chip-volume {
-  color: var(--amber);
+  color: var(--neg);
+  border-color: color-mix(in srgb, var(--neg) 40%, var(--border));
 }
 
 .alert-why,
 .alert-classification {
   margin: 0 0 8px;
-  font-size: 13px;
-  color: var(--ink-soft);
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 .alert-why strong,
 .alert-classification strong {
-  color: var(--ink);
-  font-weight: 600;
+  color: var(--text-1);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
 .alert-drivers {
-  margin: 12px 0 4px;
+  margin: 10px 0 4px;
 }
 
 .alert-driver {
@@ -242,445 +629,80 @@ body {
   align-items: center;
   gap: 8px;
   padding: 3px 0;
-  font-size: 12.5px;
-  color: var(--ink-soft);
+  font-size: 12px;
+  color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
 
 .chip.driver-chip {
-  color: var(--ink-faint);
-  padding: 3px 8px;
-  font-size: 9.5px;
+  color: var(--text-3);
+  padding: 2px 7px;
+  font-size: 9px;
 }
 
-/* ---- tabs + role toggle ---- */
-
-.tabs {
-  display: flex;
-  gap: 4px;
-  background: var(--canvas-2);
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  padding: 3px;
-}
-
-.tab {
-  padding: 7px 18px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-soft);
-  transition: background 0.15s, color 0.15s;
-}
-
-.tab-active {
-  background: var(--ink);
-  color: var(--bg);
-}
-
-.topbar-controls {
-  display: flex;
-  align-items: flex-end;
-  gap: 18px;
-}
-
-.role-toggle {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
-}
-
-.chip.role-chip {
-  cursor: pointer;
-  color: var(--ink-soft);
-}
-
-.chip.role-chip.role-admin {
-  color: var(--accent-deep);
-  border-color: var(--accent);
-}
-
-/* ---- chat ---- */
-
-.chat {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-height: 60vh;
-}
-
-.chat-log {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  flex: 1;
-}
-
-.chat-empty {
-  padding: 32px 0;
-}
-
-.chat-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.chip.suggestion-chip {
-  cursor: pointer;
-  color: var(--ink-soft);
-  background: var(--canvas-2);
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.chip.suggestion-chip:hover {
-  color: var(--accent-deep);
-  border-color: var(--accent);
-}
-
-.chat-turn {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 85%;
-}
-
-.chat-user {
-  align-self: flex-end;
-  align-items: flex-end;
-}
-
-.chat-agent {
-  align-self: flex-start;
-}
-
-.chat-bubble {
-  padding: 12px 16px;
-  border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-}
-
-.chat-user .chat-bubble {
-  background: var(--ink);
-  color: var(--bg);
-  border-bottom-right-radius: 4px;
-}
-
-.chat-agent .chat-bubble {
-  background: var(--canvas-2);
-  border: 1px solid var(--rule);
-  border-bottom-left-radius: 4px;
-}
-
-.chat-thinking {
-  color: var(--ink-faint);
-}
-
-.chat-tools-used {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip.tool-chip {
-  color: var(--ink-faint);
-  font-size: 9.5px;
-  padding: 3px 8px;
-}
-
-.chat-chart {
-  background: var(--canvas-2);
-  border: 1px solid var(--rule);
-  border-radius: 16px;
-  padding: 12px 16px;
-}
-
-.chat-chart h3 {
-  margin: 0 0 8px;
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-
-.chat-try-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.chat-try-row .suggestion-chip {
-  font-size: 9.5px;
-  padding: 4px 10px;
-}
-
-.chat-input-row {
-  display: flex;
-  gap: 10px;
-  position: sticky;
-  bottom: 0;
-  padding: 12px 0;
-  background: color-mix(in oklab, var(--bg) 92%, transparent);
-  backdrop-filter: blur(10px);
-}
-
-.chat-input {
-  flex: 1;
-  padding: 12px 18px;
-  border-radius: 999px;
-  border: 1px solid var(--rule);
-  background: var(--canvas-2);
-  font: inherit;
-  color: var(--ink);
-}
-
-.chat-input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-/* ---- guardrail card ---- */
-
-.guardrail-card {
-  border-radius: 16px;
-  border: 1px solid var(--rule);
-  border-left-width: 4px;
-  padding: 14px 16px;
-  background: var(--canvas-2);
-}
-
-.guardrail-card.guardrail-hold {
-  border-color: color-mix(in oklab, var(--red) 55%, var(--rule));
-  background: color-mix(in oklab, var(--red) 4%, var(--canvas-2));
-}
-
-.guardrail-card.guardrail-allow {
-  border-color: color-mix(in oklab, var(--green) 55%, var(--rule));
-  background: color-mix(in oklab, var(--green) 4%, var(--canvas-2));
-}
-
-.guardrail-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
-
-.chip.guardrail-chip-hold {
-  color: var(--red);
-}
-
-.chip.guardrail-chip-allow {
-  color: var(--green);
-}
-
-.guardrail-action {
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  font-size: 12px;
-}
-
-.guardrail-math {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  font-size: 12px;
-  color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 8px;
-}
-
-.guardrail-reason {
-  margin: 0;
-  font-size: 13px;
-}
-
-/* ---- reasoning panel ---- */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
-}
-
-.btn-primary {
-  background: var(--accent);
-  color: #ffffff;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: var(--accent-deep);
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px -8px rgba(223, 104, 235, 0.5);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.reason-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.chip.reason-meta {
-  color: var(--ink-faint);
-}
-
-.reason-error {
-  color: var(--red);
-  font-size: 13px;
-  margin: 8px 0 0;
-}
-
-.reason-finding {
-  margin: 4px 0 8px;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-}
-
-.reason-explanation {
-  margin: 0 0 14px;
-  font-size: 13px;
-  color: var(--ink-soft);
-  max-width: 75ch;
-}
-
-.reason-rec {
-  border-top: 1px solid var(--rule);
-  padding: 12px 0;
-}
-
-.reason-rec-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.reason-rec-title {
-  font-weight: 600;
-}
-
-.chip.pricing-chip {
-  color: var(--accent-deep);
-}
-
-.reason-savings {
-  font-weight: 600;
-  color: var(--green);
-  font-variant-numeric: tabular-nums;
-}
-
-.reason-rec-action {
-  margin: 6px 0 4px;
-  font-size: 13px;
-}
-
-.reason-rec-rationale {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--ink-soft);
-  max-width: 80ch;
-}
-
-/* ---- status colors ---- */
-
-.status-under {
-  color: var(--green);
-}
-.status-near {
-  color: var(--amber);
-}
-.status-over {
-  color: var(--red);
-}
-
-/* ---- forecast gauge ---- */
+/* ---- forecast gauge (bars: 2px radius) ---- */
 
 .gauge-track {
   position: relative;
-  height: 26px;
-  background: var(--bg);
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  overflow: visible;
-  margin: 22px 0 8px;
+  height: 22px;
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: var(--r-bar);
+  margin: 18px 0 8px;
 }
 
 .gauge-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  border-radius: 999px 0 0 999px;
+  border-radius: var(--r-bar);
 }
 
 .gauge-fill.projected {
-  background: var(--accent-glow);
+  background: #333333;
 }
 
 .gauge-fill.spent {
-  background: var(--accent);
+  background: var(--text-2);
 }
 
 .gauge-budget-marker {
   position: absolute;
-  top: -6px;
-  bottom: -6px;
+  top: -5px;
+  bottom: -5px;
   width: 2px;
-  background: var(--ink);
+  background: var(--text-1);
 }
 
 .gauge-budget-marker span {
   position: absolute;
-  top: -18px;
-  left: -30px;
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  font-size: 10px;
-  letter-spacing: 0.1em;
+  top: -16px;
+  left: -28px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--text-3);
   white-space: nowrap;
 }
 
 .gauge-legend {
   display: flex;
-  gap: 18px;
-  font-size: 12px;
-  color: var(--ink-soft);
+  gap: 16px;
+  font-size: 11.5px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
 }
 
 .swatch {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--r-bar);
   margin-right: 5px;
 }
 
-.swatch.spent {
-  background: var(--accent);
-}
-
-.swatch.projected {
-  background: var(--accent-glow);
-}
+.swatch.spent { background: var(--text-2); }
+.swatch.projected { background: #333333; }
 
 /* ---- charts ---- */
 
@@ -690,83 +712,82 @@ body {
   gap: 16px;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1300px) {
   .charts-row {
     grid-template-columns: 1fr;
   }
 }
 
-/* ---- commitments ---- */
+.series-chart {
+  min-width: 0;
+}
+
+/* ---- commitments ----
+   Status semantics: underutilized and overage are OPPOSITE problems but the
+   same signal class (money wasted / money bleeding) → both negative; the
+   chip TEXT says which. on_track → positive. Bars stay neutral — the chip
+   carries the signal. */
 
 .commitment {
-  padding: 8px 0;
+  padding: 7px 0;
 }
 
 .commitment-head {
   display: flex;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 6px;
-  font-weight: 500;
+  font-size: 12.5px;
 }
 
 .commit-track {
-  height: 8px;
-  background: var(--bg);
-  border: 1px solid var(--rule);
-  border-radius: 999px;
+  height: 6px;
+  background: var(--bg-page);
+  border: 1px solid var(--border);
+  border-radius: var(--r-bar);
   overflow: hidden;
 }
 
 .commit-fill {
   height: 100%;
+  background: var(--text-2);
 }
 
-.commit-fill.commit-underutilized {
-  background: var(--amber);
-}
-
-.commit-fill.commit-on_track {
-  background: var(--green);
-}
-
-.commit-fill.commit-overage {
-  background: var(--red);
-}
-
-.chip.commit-underutilized {
-  color: var(--amber);
+.chip.commit-underutilized,
+.chip.commit-overage {
+  color: var(--neg);
+  border-color: color-mix(in srgb, var(--neg) 40%, var(--border));
 }
 
 .chip.commit-on_track {
-  color: var(--green);
-}
-
-.chip.commit-overage {
-  color: var(--red);
+  color: var(--pos);
+  border-color: color-mix(in srgb, var(--pos) 40%, var(--border));
 }
 
 .commitment-detail {
-  margin-top: 5px;
-  font-size: 12px;
-  color: var(--ink-soft);
+  margin-top: 4px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- breakdowns ---- */
+/* ---- breakdowns (bars: 2px) ---- */
 
 .breakdown-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 18px 28px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px 24px;
 }
 
 .breakdown-row {
   display: grid;
-  grid-template-columns: 110px 1fr 76px 46px;
+  grid-template-columns: 100px 1fr 70px 42px;
   align-items: center;
   gap: 8px;
   padding: 3px 0;
-  font-size: 12px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -774,19 +795,20 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text-2);
 }
 
 .breakdown-bar {
-  height: 8px;
-  background: var(--canvas-3);
-  border-radius: 999px;
+  height: 6px;
+  background: var(--bg-page);
+  border-radius: var(--r-bar);
   overflow: hidden;
 }
 
 .breakdown-fill {
   height: 100%;
-  background: var(--accent);
-  border-radius: 999px;
+  background: var(--text-2);
+  border-radius: var(--r-bar);
 }
 
 .breakdown-cost {
@@ -795,5 +817,128 @@ body {
 
 .breakdown-share {
   text-align: right;
-  color: var(--ink-faint);
+  color: var(--text-3);
+}
+
+/* ---- guardrail cards ---- */
+
+.guardrail-card {
+  border-radius: var(--r-panel);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+}
+
+.guardrail-card.guardrail-hold { border-left-color: var(--neg); }
+.guardrail-card.guardrail-allow { border-left-color: var(--pos); }
+
+.guardrail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.chip.guardrail-chip-hold {
+  color: var(--neg);
+  border-color: color-mix(in srgb, var(--neg) 40%, var(--border));
+}
+
+.chip.guardrail-chip-allow {
+  color: var(--pos);
+  border-color: color-mix(in srgb, var(--pos) 40%, var(--border));
+}
+
+.guardrail-action {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.guardrail-math {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 8px;
+}
+
+.guardrail-reason {
+  margin: 0;
+  font-size: 12.5px;
+}
+
+/* ---- reasoning panel ---- */
+
+.reason-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chip.reason-meta {
+  color: var(--text-3);
+}
+
+.reason-error {
+  color: var(--neg);
+  font-size: 12.5px;
+  margin: 8px 0 0;
+}
+
+.reason-finding {
+  margin: 4px 0 8px;
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+.reason-explanation {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.reason-rec {
+  border-top: 1px solid var(--border);
+  padding: 10px 0;
+}
+
+.reason-rec-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reason-rec-title {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.chip.pricing-chip {
+  color: var(--text-2);
+}
+
+.reason-savings {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--pos); /* semantic: money recovered */
+  font-variant-numeric: tabular-nums;
+}
+
+.reason-rec-action {
+  margin: 6px 0 4px;
+  font-size: 12.5px;
+}
+
+.reason-rec-rationale {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--text-2);
 }

@@ -20,14 +20,16 @@ import type { RatedEvent } from "../meter";
 import type { ResourceType } from "../schema";
 import { shortDay, usd2 } from "./format";
 
-// Drift Audio palette (driftdsp.com tokens): purple accent carries the LLM
-// series — it's the one the demo narrative cares about.
+// Delta-V system: series colors are a neutral gray ramp — signal colors
+// (#8CC3F2 / #F2968C) are semantic-only and never decorate chart series.
+// The LLM series gets the brightest neutral because it's the series the
+// narrative reads, not a signal claim.
 const RESOURCE_ORDER: ResourceType[] = ["api", "subscription", "compute", "llm"];
 const RESOURCE_COLOR: Record<ResourceType, string> = {
-  api: "#0033FF",
-  subscription: "#B8B8B8",
-  compute: "#FF4D8B",
-  llm: "#DF68EB",
+  api: "#8A8A8A",
+  subscription: "#3E3E3E",
+  compute: "#5E5E5E",
+  llm: "#F2F2F2",
 };
 
 export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay: string }) {
@@ -51,10 +53,12 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
     <Tooltip
       formatter={(value, name) => [usd2(Number(value ?? 0)), String(name)]}
       contentStyle={{
-        background: "#FFFFFF",
-        border: "1px solid rgba(0, 0, 0, 0.12)",
-        borderRadius: 10,
+        background: "#191919",
+        border: "1px solid #2E2E2E",
+        borderRadius: 6,
         fontSize: 12,
+        fontFamily: "'IBM Plex Mono', monospace",
+        color: "#F2F2F2",
       }}
     />
   );
@@ -70,9 +74,9 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
           <h3>Total by resource type</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={rows} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
-              <CartesianGrid stroke="rgba(0, 0, 0, 0.08)" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 11 }} width={52} />
+              <CartesianGrid stroke="#2E2E2E" vertical={false} />
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 10, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} width={52} />
               {tooltip}
               {RESOURCE_ORDER.map((t) => (
                 <Bar key={t} dataKey={t} stackId="cost" fill={RESOURCE_COLOR[t]} />
@@ -84,9 +88,9 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
           <h3>LLM spend only</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={rows} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
-              <CartesianGrid stroke="rgba(0, 0, 0, 0.08)" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 11 }} width={52} />
+              <CartesianGrid stroke="#2E2E2E" vertical={false} />
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 10, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} width={52} />
               {tooltip}
               <Line
                 type="monotone"

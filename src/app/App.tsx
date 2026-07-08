@@ -1,9 +1,10 @@
-// App shell: Chat is the primary surface (SPEC §5 evolved), the dashboard
-// remains as the supporting view. Both share one world-state — the as-of-day
-// scrubber and the (fake, labeled) role toggle live in the top bar.
-// The "as of day" scrubber re-runs metering + attribution + forecast +
-// detection on the events up to that day, so every number is honest for
-// that point in time — in both views.
+// Delta-V shell (Stage 2a): single screen — 64px top bar, permanent 320px
+// chat dock left, canvas right. No tabs. World state (as-of day, role),
+// conversation state, and canvas layout all live here; everything below is
+// props. The as-of scrubber re-runs metering + attribution + forecast +
+// detection on the events up to that day, so every number — builtin cards
+// and live pinned cards alike — is honest for that point in time.
+// Canvas/pin state is in-memory, session-only (no persistence by design).
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { detectAnomalies } from "../anomaly";
@@ -12,15 +13,17 @@ import { forecast } from "../forecast";
 import { meterEvents } from "../meter";
 import type { GeneratorConfig, UsageEvent } from "../schema";
 import { buildWindowSummary } from "../summarize";
-import { AlertCards } from "./AlertCard";
-import { Breakdowns } from "./Breakdowns";
+import {
+  Canvas,
+  DEFAULT_CARDS,
+  type CanvasCard,
+  type EngineView,
+  type PinQuery,
+  type Provenance,
+} from "./Canvas";
 import { Chat, type DisplayTurn } from "./Chat";
-import { Commitments } from "./Commitments";
 import { MONTHLY_BUDGET } from "./config";
-import { DailyCharts } from "./DailyCharts";
-import { ForecastCard } from "./ForecastCard";
-import { usd, usd2 } from "./format";
-import { ReasoningPanel } from "./ReasoningPanel";
+import { ROLE_LABEL, TopBar, type Role } from "./TopBar";
 
 interface DataFile {
   generated_at: string;
@@ -28,19 +31,14 @@ interface DataFile {
   events: UsageEvent[];
 }
 
-type Tab = "chat" | "dashboard";
-type Role = "member" | "admin";
-
 export function App() {
   const [data, setData] = useState<DataFile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [asOfIndex, setAsOfIndex] = useState<number | null>(null);
-  const [tab, setTab] = useState<Tab>("chat");
   const [role, setRole] = useState<Role>("member");
-  // Conversation state lives here, above the tab switch, so it survives
-  // Chat → Dashboard → Chat (the Chat component unmounts on toggle).
   const [chatTurns, setChatTurns] = useState<DisplayTurn[]>([]);
   const chatApiMessages = useRef<unknown[]>([]);
+  const [cards, setCards] = useState<CanvasCard[]>(DEFAULT_CARDS);
 
   useEffect(() => {
     fetch("/usage-events.json")
@@ -57,7 +55,7 @@ export function App() {
   const dayIndex = asOfIndex ?? allDays.length - 1;
   const asOfDay = allDays[dayIndex] ?? "";
 
-  const view = useMemo(() => {
+  const view = useMemo<EngineView | null>(() => {
     if (!data || !asOfDay) return null;
     const eventsToDate = data.events.filter((e) => e.timestamp.slice(0, 10) <= asOfDay);
     const metered = meterEvents(eventsToDate, data.config.commitments ?? []);
@@ -70,107 +68,48 @@ export function App() {
       asOfDay,
       MONTHLY_BUDGET,
     );
+    const elapsedDays = allDays.slice(0, allDays.indexOf(asOfDay) + 1);
     // Detection sees only elapsed days — no lookahead.
-    const alerts = detectAnomalies(metered.events, allDays.slice(0, allDays.indexOf(asOfDay) + 1));
+    const alerts = detectAnomalies(metered.events, elapsedDays);
     const summary = buildWindowSummary(data.config, metered, attributed, fc, alerts);
-    return { metered, attributed, fc, alerts, summary };
+    return { metered, attributed, fc, alerts, summary, elapsedDays };
   }, [data, asOfDay, allDays]);
+
+  function pinCard(query: PinQuery, provenance: Provenance) {
+    setCards((cs) => [
+      ...cs,
+      { id: `pin-${Date.now()}-${cs.length}`, kind: "pinned", query, provenance },
+    ]);
+  }
 
   if (error) return <div className="load-state">Failed to load usage data: {error}</div>;
   if (!data || !view) return <div className="load-state">Loading usage events…</div>;
 
-  const { metered, attributed, fc, alerts, summary } = view;
-
   return (
-    <div className="app">
-      <header className="topbar">
-        <div>
-          <h1>AI Spend Governor</h1>
-          <span className="subtitle">
-            {data.config.preset} · {data.config.customer_id} / {data.config.team_id}
-          </span>
-        </div>
-        <nav className="tabs">
-          <button className={`tab ${tab === "chat" ? "tab-active" : ""}`} onClick={() => setTab("chat")}>
-            Chat
-          </button>
-          <button
-            className={`tab ${tab === "dashboard" ? "tab-active" : ""}`}
-            onClick={() => setTab("dashboard")}
-          >
-            Dashboard
-          </button>
-        </nav>
-        <div className="topbar-controls">
-          <label className="scrubber">
-            <span>
-              as of <strong>{asOfDay}</strong> (day {fc.daysElapsed} of {fc.daysTotal})
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={allDays.length - 1}
-              value={dayIndex}
-              onChange={(e) => setAsOfIndex(Number(e.target.value))}
-            />
-          </label>
-          <label className="role-toggle">
-            <span className="subtitle">role</span>
-            <button
-              className={`chip role-chip ${role === "admin" ? "role-admin" : ""}`}
-              onClick={() => setRole(role === "member" ? "admin" : "member")}
-              title="Fake auth for the guardrail demo — toggles the role sent with each chat request"
-              type="button"
-            >
-              {role}
-            </button>
-          </label>
-        </div>
-      </header>
-
-      {tab === "chat" && (
+    <div className="shell">
+      <TopBar
+        asOfDay={asOfDay}
+        dayIndex={dayIndex}
+        dayCount={allDays.length}
+        daysElapsed={view.fc.daysElapsed}
+        daysTotal={view.fc.daysTotal}
+        onScrub={setAsOfIndex}
+        role={role}
+        onRoleChange={setRole}
+      />
+      <div className="main">
         <Chat
           role={role}
+          roleLabel={ROLE_LABEL[role]}
           asOfDay={asOfDay}
           turns={chatTurns}
           setTurns={setChatTurns}
           apiMessages={chatApiMessages}
+          onPin={pinCard}
         />
-      )}
-
-      {tab === "dashboard" && (
-        <>
-          <section className="kpis">
-            <div className="kpi">
-              <span className="kpi-label">Spend to date</span>
-              <span className="kpi-value">{usd2(fc.spendToDate)}</span>
-            </div>
-            <div className="kpi">
-              <span className="kpi-label">Projected month-end</span>
-              <span className={`kpi-value status-${fc.status}`}>{usd2(fc.projectedTotal)}</span>
-            </div>
-            <div className="kpi">
-              <span className="kpi-label">Budget</span>
-              <span className="kpi-value">{usd(fc.budget)}</span>
-            </div>
-            <div className="kpi">
-              <span className="kpi-label">Variable burn / day</span>
-              <span className="kpi-value">{usd2(fc.variableDailyBurn)}</span>
-            </div>
-            <div className="kpi">
-              <span className="kpi-label">Events metered</span>
-              <span className="kpi-value">{metered.events.length.toLocaleString()}</span>
-            </div>
-          </section>
-
-          <AlertCards alerts={alerts} />
-          <ReasoningPanel summary={summary} />
-          <ForecastCard fc={fc} />
-          <DailyCharts events={metered.events} asOfDay={asOfDay} />
-          <Commitments commitments={metered.commitments} />
-          <Breakdowns attributed={attributed} />
-        </>
-      )}
+        <Canvas cards={cards} setCards={setCards} view={view} asOfDay={asOfDay} />
+      </div>
+      <div className="grain" aria-hidden="true" />
     </div>
   );
 }
