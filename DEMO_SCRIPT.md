@@ -105,6 +105,9 @@ model's own judgment — held it and escalated. Scoped authority, auditable
 verdict. This is the difference between an agent you can deploy and automation
 theater."
 
+**Then add:** "in production, pre-set budget policies trigger this same
+guardrailed path automatically — either way, authority is enforced in code."
+
 ## Beat 5 — coda (both branches, optional)
 
 Toggle role to **Eng**, then ask: `Cap the draft_reply budget at $70/mo`
