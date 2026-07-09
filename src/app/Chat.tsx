@@ -7,10 +7,13 @@
 import { useState, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import type { AnomalyAlert } from "../anomaly";
 import type { Rollup } from "../attribution";
+import type { CostMatrix } from "../cost-matrix";
+import type { RatedEvent } from "../meter";
 import { AlertCards } from "./AlertCard";
 import { BreakdownCard } from "./Breakdowns";
 import { PIN_DRAG_MIME, type PinQuery, type Provenance } from "./Canvas";
 import { GuardrailCard, type ActionResult } from "./GuardrailCard";
+import { Heatmap } from "./Heatmap";
 import { SeriesChart, type SeriesResult } from "./SeriesChart";
 
 interface ToolEvent {
@@ -31,24 +34,37 @@ const SUGGESTIONS = [
   "How's my spend looking this month?",
   "Why did my LLM spend spike?",
   "What would fixing it save?",
+  "Show me the cost heatmap",
   "Cap the draft_reply budget at $20/mo",
 ];
 
-const PINNABLE = new Set(["get_daily_series", "get_attribution", "get_anomalies"]);
+const PINNABLE = new Set(["get_daily_series", "get_attribution", "get_anomalies", "get_cost_matrix"]);
 
 function isPinnable(event: ToolEvent): boolean {
   if (!PINNABLE.has(event.tool)) return false;
   if (event.tool === "get_anomalies") return Array.isArray(event.result) && event.result.length > 0;
   const r = event.result as Record<string, unknown> | null;
-  return r !== null && !(typeof r === "object" && "error" in r);
+  if (r === null || (typeof r === "object" && "error" in r)) return false;
+  if (event.tool === "get_cost_matrix") return Array.isArray(r.cells) && r.cells.length > 0;
+  return true;
 }
 
-function ArtifactBody({ event }: { event: ToolEvent }) {
+function ArtifactBody({
+  event,
+  events,
+  asOfDay,
+}: {
+  event: ToolEvent;
+  events: RatedEvent[];
+  asOfDay: string;
+}) {
   const r = event.result as Record<string, unknown> | unknown[] | null;
   if (r === null || (typeof r === "object" && !Array.isArray(r) && "error" in r)) return null;
   switch (event.tool) {
     case "get_daily_series":
       return <SeriesChart result={event.result as SeriesResult} height={120} />;
+    case "get_cost_matrix":
+      return <Heatmap matrix={event.result as CostMatrix} events={events} asOfDay={asOfDay} />;
     case "get_attribution": {
       const res = event.result as { dimension: string; entries: ({ key: string } & Rollup)[] };
       const dim = Object.fromEntries(res.entries.map(({ key, ...rollup }) => [key, rollup]));
@@ -68,16 +84,18 @@ function ArtifactBody({ event }: { event: ToolEvent }) {
 
 function ToolArtifact({
   event,
+  events,
   chatQuery,
   asOfDay,
   onPin,
 }: {
   event: ToolEvent;
+  events: RatedEvent[];
   chatQuery: string;
   asOfDay: string;
   onPin: (query: PinQuery, provenance: Provenance) => void;
 }) {
-  const body = ArtifactBody({ event });
+  const body = ArtifactBody({ event, events, asOfDay });
   if (body === null) return null;
 
   if (!isPinnable(event)) return <div className="artifact">{body}</div>;
@@ -113,6 +131,7 @@ export function Chat({
   role,
   roleLabel,
   asOfDay,
+  events,
   turns,
   setTurns,
   apiMessages,
@@ -121,6 +140,7 @@ export function Chat({
   role: "admin" | "member";
   roleLabel: string;
   asOfDay: string;
+  events: RatedEvent[]; // current view's rated events — drill-down data for inline heatmaps
   turns: DisplayTurn[];
   setTurns: Dispatch<SetStateAction<DisplayTurn[]>>;
   apiMessages: MutableRefObject<unknown[]>;
@@ -208,7 +228,14 @@ export function Chat({
             )}
             <div className="chat-bubble">{turn.text}</div>
             {turn.toolEvents?.map((e, j) => (
-              <ToolArtifact key={j} event={e} chatQuery={queryFor(i)} asOfDay={asOfDay} onPin={onPin} />
+              <ToolArtifact
+                key={j}
+                event={e}
+                events={events}
+                chatQuery={queryFor(i)}
+                asOfDay={asOfDay}
+                onPin={onPin}
+              />
             ))}
           </div>
         ))}

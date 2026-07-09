@@ -107,6 +107,7 @@ export function App() {
           role={role}
           roleLabel={ROLE_LABEL[role]}
           asOfDay={asOfDay}
+          events={view.metered.events}
           turns={chatTurns}
           setTurns={setChatTurns}
           apiMessages={chatApiMessages}

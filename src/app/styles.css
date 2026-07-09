@@ -826,6 +826,154 @@ button {
   color: var(--text-3);
 }
 
+/* ---- heatmap (gradient rule: rgba(140,195,242,α), α 0.05–0.95 linear) ---- */
+
+.heatmap {
+  min-width: 0;
+}
+
+.heatmap-scope {
+  margin-bottom: 8px;
+}
+
+.heatmap-grid {
+  display: grid;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.heatmap-col-label,
+.heatmap-row-label {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-3);
+}
+
+.heatmap-col-label {
+  justify-content: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.heatmap-cell {
+  min-height: 30px;
+  border-radius: var(--r-bar);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: outline-color 0.1s;
+  outline: 1px solid transparent;
+}
+
+.heatmap-cell:hover {
+  outline-color: var(--text-2);
+}
+
+.heatmap-cell-empty {
+  cursor: default;
+  color: var(--text-3);
+  outline: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r-bar);
+}
+
+/* ---- drill-down modal ---- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-panel);
+  width: min(720px, 100%);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 14px;
+  color: var(--text-1);
+}
+
+.modal-meta {
+  display: block;
+  margin-top: 3px;
+}
+
+.modal-body {
+  overflow-y: auto;
+  padding: 8px 16px 16px;
+}
+
+.drill-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.drill-table th {
+  text-align: left;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+  color: var(--text-3);
+  padding: 8px 10px 6px 0;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+}
+
+.drill-table td {
+  padding: 4px 10px 4px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+  color: var(--text-2);
+}
+
+.drill-table th.num,
+.drill-table td.num {
+  text-align: right;
+}
+
+.drill-table td.num:last-child {
+  color: var(--text-1);
+}
+
+.modal-cap-note {
+  margin: 10px 0 0;
+}
+
 /* ---- guardrail cards ---- */
 
 .guardrail-card {

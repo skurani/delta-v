@@ -12,6 +12,7 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import type { AnomalyAlert } from "../anomaly";
 import type { AttributionResult, Rollup } from "../attribution";
 import { topEntries } from "../attribution";
+import { costMatrix } from "../cost-matrix";
 import type { ForecastResult } from "../forecast";
 import type { MeterResult, RatedEvent } from "../meter";
 import type { WindowSummary } from "../summarize";
@@ -21,6 +22,7 @@ import { Commitments } from "./Commitments";
 import { DailyCharts } from "./DailyCharts";
 import { ForecastCard } from "./ForecastCard";
 import { usd, usd2 } from "./format";
+import { Heatmap } from "./Heatmap";
 import { ReasoningPanel } from "./ReasoningPanel";
 import { SeriesChart, type SeriesResult } from "./SeriesChart";
 
@@ -37,7 +39,11 @@ export type BuiltinComponent =
   | "breakdowns"
   | "reasoning";
 
-export type PinnableTool = "get_daily_series" | "get_attribution" | "get_anomalies";
+export type PinnableTool =
+  | "get_daily_series"
+  | "get_attribution"
+  | "get_anomalies"
+  | "get_cost_matrix";
 
 export interface PinQuery {
   tool: PinnableTool;
@@ -85,9 +91,14 @@ const SPAN: Record<BuiltinComponent, number> = {
   reasoning: 3,
 };
 
-const PINNED_SPAN = 4;
+// Pinned cards default to 4 columns; the heatmap needs more room to breathe.
+const PINNED_SPAN: Partial<Record<PinnableTool, number>> = { get_cost_matrix: 6 };
+const PINNED_SPAN_DEFAULT = 4;
 
-const cardSpan = (card: CanvasCard) => (card.kind === "builtin" ? SPAN[card.component] : PINNED_SPAN);
+const cardSpan = (card: CanvasCard) =>
+  card.kind === "builtin"
+    ? SPAN[card.component]
+    : PINNED_SPAN[card.query.tool] ?? PINNED_SPAN_DEFAULT;
 
 // ---------------------------------------------------------------------------
 // Pinned-query resolution — same engine, client-side, live
@@ -120,10 +131,16 @@ const DIM_MAP: Record<string, keyof AttributionResult> = {
   feature: "byFeature", team: "byTeam", customer: "byCustomer", user: "byUser", seat: "bySeat", workload: "byWorkload",
 };
 
-function PinnedArtifact({ query, view }: { query: PinQuery; view: EngineView }) {
+function PinnedArtifact({ query, view, asOfDay }: { query: PinQuery; view: EngineView; asOfDay: string }) {
   switch (query.tool) {
     case "get_daily_series":
       return <SeriesChart result={resolveDailySeries(view, query.input)} />;
+    case "get_cost_matrix":
+      // Same shared aggregation the server tool uses — recomputed against
+      // the current view, so the pinned heatmap follows the scrubber.
+      return (
+        <Heatmap matrix={costMatrix(view.metered.events)} events={view.metered.events} asOfDay={asOfDay} />
+      );
     case "get_attribution": {
       const dimension = String(query.input.dimension ?? "resource_type");
       const dimKey = DIM_MAP[dimension];
@@ -321,7 +338,7 @@ export function Canvas({
                 <BuiltinBody component={card.component} view={view} asOfDay={asOfDay} />
               ) : (
                 <>
-                  <PinnedArtifact query={card.query} view={view} />
+                  <PinnedArtifact query={card.query} view={view} asOfDay={asOfDay} />
                   <p className="provenance mono-label">
                     “{card.provenance.chatQuery}” · {card.query.tool}(
                     {Object.values(card.query.input).filter(Boolean).join(", ")}) · pinned as-of{" "}
