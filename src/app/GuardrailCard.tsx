@@ -3,6 +3,10 @@
 // the policy arithmetic shown.
 
 import { usd2 } from "./format";
+import { ROLE_LABEL, type Role } from "./TopBar";
+
+// Wire values (member/admin) stay in the payload; render shows FinOps/Eng.
+const roleLabel = (r: string) => ROLE_LABEL[r as Role] ?? r;
 
 export interface ActionResult {
   action: string;
@@ -39,9 +43,9 @@ export function GuardrailCard({ result }: { result: ActionResult }) {
         <span>impact {usd2(result.policy.estimated_monthly_impact_usd)}/mo</span>
         <span>authority limit {usd2(result.policy.authority_limit_usd)}/mo</span>
         <span>
-          role {result.policy.role}
+          role {roleLabel(result.policy.role)}
           {held && result.policy.role !== result.policy.required_role
-            ? ` (requires ${result.policy.required_role})`
+            ? ` (requires ${roleLabel(result.policy.required_role)})`
             : ""}
         </span>
       </div>

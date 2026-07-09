@@ -11,6 +11,7 @@
 // model's decision-making is canned. Numbers stay honest either way.
 
 import Anthropic from "@anthropic-ai/sdk";
+import { ROLE_LABEL, type Role } from "./policy";
 import { TOOL_DEFS } from "./tools";
 
 export interface AgentBlock {
@@ -56,6 +57,7 @@ class RealChatModel implements ChatModel {
 // ---------------------------------------------------------------------------
 
 const usd = (x: number) => "$" + Number(x).toFixed(2);
+const roleLabel = (r: string) => ROLE_LABEL[r as Role] ?? r;
 
 type ToolResults = Map<string, unknown>; // tool name → parsed result
 
@@ -86,7 +88,7 @@ const SCRIPTS: Script[] = [
       const r = results.get("cap_budget") as Record<string, any> | undefined;
       if (!r) return "I attempted the cap but received no result.";
       if (r.verdict === "hold") {
-        return `I attempted the cap, and the guardrail held it. Requested cap: ${usd(r.requested_cap_usd)}/mo on ${r.feature}, which currently runs at ${usd(r.current_monthly_run_rate_usd)}/mo — an estimated impact of ${usd(r.policy.estimated_monthly_impact_usd)}/mo. ${r.policy.role === "member" ? `Policy requires the ${r.policy.required_role} role to execute actions; your current role is ${r.policy.role}.` : `That exceeds my ${usd(r.policy.authority_limit_usd)}/mo autonomous-action authority.`} The action is escalated for approval rather than executed — nothing was changed.`;
+        return `I attempted the cap, and the guardrail held it. Requested cap: ${usd(r.requested_cap_usd)}/mo on ${r.feature}, which currently runs at ${usd(r.current_monthly_run_rate_usd)}/mo — an estimated impact of ${usd(r.policy.estimated_monthly_impact_usd)}/mo. ${r.policy.role === "member" ? `Policy requires the ${roleLabel(r.policy.required_role)} role to execute actions; your current role is ${roleLabel(r.policy.role)}.` : `That exceeds my ${usd(r.policy.authority_limit_usd)}/mo autonomous-action authority.`} The action is escalated for approval rather than executed — nothing was changed.`;
       }
       return `Done — cap executed. ${r.feature} is now capped at ${usd(r.requested_cap_usd)}/mo against a current run-rate of ${usd(r.current_monthly_run_rate_usd)}/mo (estimated impact ${usd(r.policy.estimated_monthly_impact_usd)}/mo, within my ${usd(r.policy.authority_limit_usd)}/mo authority). ${r.simulation_note ?? ""}`;
     },
@@ -98,7 +100,7 @@ const SCRIPTS: Script[] = [
       const r = results.get("throttle_workload") as Record<string, any> | undefined;
       if (!r) return "I attempted the throttle but received no result.";
       return r.verdict === "hold"
-        ? `I attempted to throttle ${r.feature}, and the guardrail held it: throttling holds the feature's full ${usd(r.current_monthly_run_rate_usd)}/mo run-rate, ${r.policy.role === "member" ? `and actions require the admin role (current: ${r.policy.role})` : `which exceeds my ${usd(r.policy.authority_limit_usd)}/mo authority`}. Escalated for approval — nothing was changed.`
+        ? `I attempted to throttle ${r.feature}, and the guardrail held it: throttling holds the feature's full ${usd(r.current_monthly_run_rate_usd)}/mo run-rate, ${r.policy.role === "member" ? `and actions require the ${roleLabel("admin")} role (current: ${roleLabel(r.policy.role)})` : `which exceeds my ${usd(r.policy.authority_limit_usd)}/mo authority`}. Escalated for approval — nothing was changed.`
         : `Throttle executed on ${r.feature} (run-rate ${usd(r.current_monthly_run_rate_usd)}/mo). ${r.simulation_note ?? ""}`;
     },
   },

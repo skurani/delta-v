@@ -5,6 +5,13 @@
 
 export type Role = "admin" | "member";
 
+// Display labels for narration/render surfaces. Wire values (member/admin)
+// stay untouched in the policy fields — only prose uses these.
+export const ROLE_LABEL: Record<Role, string> = {
+  member: "FinOps",
+  admin: "Eng",
+};
+
 // A single scoped-authority cap: the agent may autonomously execute actions
 // whose estimated monthly spend impact is at or below this. Set the honest
 // way — roughly half the affected feature's typical run-rate, so a measured
@@ -41,7 +48,7 @@ export function checkGuardrail(action: ActionRequest, role: Role): GuardrailDeci
   if (role !== "admin") {
     return {
       verdict: "hold",
-      reason: `Action held: executing ${action.tool} on "${action.feature}" requires the admin role; current role is ${role}. Escalated for admin approval.`,
+      reason: `Action held: executing ${action.tool} on "${action.feature}" requires the ${ROLE_LABEL.admin} role; current role is ${ROLE_LABEL[role]}. Escalated for ${ROLE_LABEL.admin} approval.`,
       policy,
     };
   }
@@ -58,7 +65,7 @@ export function checkGuardrail(action: ActionRequest, role: Role): GuardrailDeci
 
   return {
     verdict: "allow",
-    reason: `Action authorized: estimated monthly impact $${impact} is within the $${ACTION_AUTHORITY_LIMIT_USD} authority limit and role is admin.`,
+    reason: `Action authorized: estimated monthly impact $${impact} is within the $${ACTION_AUTHORITY_LIMIT_USD} authority limit and role is ${ROLE_LABEL.admin}.`,
     policy,
   };
 }
