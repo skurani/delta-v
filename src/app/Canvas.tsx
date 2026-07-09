@@ -67,6 +67,7 @@ export interface EngineView {
   alerts: AnomalyAlert[];
   summary: WindowSummary;
   elapsedDays: string[];
+  allDays: string[]; // full window incl. future days — the forecast chart's x-axis
 }
 
 // Default order reproduces the handoff rows: KPI row / (alerts) /
@@ -199,7 +200,7 @@ function BuiltinBody({ component, view, asOfDay }: { component: BuiltinComponent
     case "daily-charts":
       return <DailyCharts events={view.metered.events} asOfDay={asOfDay} />;
     case "forecast":
-      return <ForecastCard fc={view.fc} />;
+      return <ForecastCard fc={view.fc} byDay={view.attributed.byDay} allDays={view.allDays} />;
     case "commitments":
       return <Commitments commitments={view.metered.commitments} />;
     case "breakdowns":

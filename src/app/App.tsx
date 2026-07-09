@@ -72,7 +72,7 @@ export function App() {
     // Detection sees only elapsed days — no lookahead.
     const alerts = detectAnomalies(metered.events, elapsedDays);
     const summary = buildWindowSummary(data.config, metered, attributed, fc, alerts);
-    return { metered, attributed, fc, alerts, summary, elapsedDays };
+    return { metered, attributed, fc, alerts, summary, elapsedDays, allDays };
   }, [data, asOfDay, allDays]);
 
   function pinCard(query: PinQuery, provenance: Provenance) {

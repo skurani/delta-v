@@ -74,6 +74,20 @@ engine's own caveat about quality on hard cases. Posture: recommendation only.
 **Say:** "The savings figure came from a tool, not the model's imagination —
 'math for the meter, LLM for the judgment.'"
 
+## Beat 3.5 — the composable canvas (optional, shows off pin flow)
+
+**Ask:** `Show me the cost heatmap`
+*(fallbacks: "cost matrix", "cross-tab by feature and model")*
+
+**Expect:** tool `get_cost_matrix` → inline feature × model heatmap (LLM
+spend only — the scope is labeled on the chart). Hottest cell:
+draft_reply × claude-opus-4-8, ~84% of the feature's LLM cost in one cell.
+
+**Do:** click the hot cell → the drill-down modal lists the real events
+behind that number (count + total reconcile in the header). Close it, then
+**pin the heatmap to the canvas** and scrub the as-of slider — the pinned
+card recomputes live. That's the composable-dashboard story in one beat.
+
 ## Beat 4 — THE GUARDRAIL (climax)
 
 **Role: FinOps** (the default — don't touch the toggle).
