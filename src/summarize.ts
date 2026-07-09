@@ -17,6 +17,7 @@ export interface WindowSummary {
     preset: string;
     customer_id: string;
     team_id: string;
+    window_start: string; // first day with data — so narration never guesses the calendar span
     as_of_day: string;
     days_elapsed: number;
     days_total: number;
@@ -85,6 +86,7 @@ export function buildWindowSummary(
       preset: config.preset,
       customer_id: config.customer_id,
       team_id: config.team_id,
+      window_start: Object.keys(attributed.byDay).sort()[0] ?? fc.asOfDay,
       as_of_day: fc.asOfDay,
       days_elapsed: fc.daysElapsed,
       days_total: fc.daysTotal,
