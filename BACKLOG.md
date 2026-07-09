@@ -56,12 +56,12 @@ Milestone 2 is NOT required to call Milestone 1 done. It is the monetization pat
 
 ### P0 — required for POC done
 
-- [ ] **Live model run (real Opus).** Add ANTHROPIC_API_KEY to .env; run the golden path on Haiku first (cheap sanity check on tool-routing), then Opus. Verify: real model picks correct tools per beat; narration stays grounded (no invented numbers); guardrail holds narrate cleanly. Cache the Opus golden path so re-demos are free.
+- [x] **Live model run (real Opus).** Add ANTHROPIC_API_KEY to .env; run the golden path on Haiku first (cheap sanity check on tool-routing), then Opus. Verify: real model picks correct tools per beat; narration stays grounded (no invented numbers); guardrail holds narrate cleanly. Cache the Opus golden path so re-demos are free.
   - *Done when:* the full DEMO_SCRIPT.md golden path runs clean on Opus, every number traces to a tool, both guardrail gates fire correctly.
-- [ ] **Stage 2b — remaining design-handoff components.**
-  - [ ] Team × model **attribution heatmap** (alpha-scaled signal/positive fills per the gradient rule).
-  - [ ] **Drill-down modal** — clicking a heatmap cell opens a table of the underlying rows for that slice.
-  - [ ] **Forecast-chart refinements** — dashed grey projection switching to signal/negative where it crosses budget; solid budget rule; "today" dot.
+- [x] **Stage 2b — remaining design-handoff components.**
+  - [x] Team × model **attribution heatmap** (alpha-scaled signal/positive fills per the gradient rule).
+  - [x] **Drill-down modal** — clicking a heatmap cell opens a table of the underlying rows for that slice.
+  - [x] **Forecast-chart refinements** — dashed grey projection switching to signal/negative where it crosses budget; solid budget rule; "today" dot.
   - *Done when:* all three render, match the token spec, and the heatmap→modal drill works.
 - [ ] **DEMO_SCRIPT.md current + rehearsed.** Reflects Delta-V rename, unified layout, real-model phrasing variations, and off-script recovery. You can run it top to bottom without hesitation.
   - *Done when:* you can demo the whole thing from the script cold.

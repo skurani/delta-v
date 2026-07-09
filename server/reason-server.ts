@@ -27,6 +27,7 @@ import { createToolExecutor, type ToolEvent } from "./tools";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CACHE_FILE = join(ROOT, "data", "reasoning-cache.json");
+const CHAT_CACHE_FILE = join(ROOT, "data", "chat-cache.json");
 const DATA_FILE = join(ROOT, "data", "usage-events.json");
 const PORT = 8787;
 const MAX_TOOL_ITERATIONS = 8;
@@ -96,6 +97,19 @@ interface CacheEntry {
   created_at: string;
   model: string;
   analysis: unknown;
+}
+
+function loadChatCache(): Record<string, Awaited<ReturnType<typeof runAgentLoop>>> {
+  try {
+    return JSON.parse(readFileSync(CHAT_CACHE_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveChatCache(cache: Record<string, unknown>) {
+  mkdirSync(dirname(CHAT_CACHE_FILE), { recursive: true });
+  writeFileSync(CHAT_CACHE_FILE, JSON.stringify(cache, null, 1));
 }
 
 function loadCache(): Record<string, CacheEntry> {
@@ -230,7 +244,29 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST" && req.url === "/api/chat") {
       const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as ChatRequest;
       if (!Array.isArray(body.messages)) throw new Error("body must be { messages: [...], role?, as_of_day? }");
+      // Response cache (real mode only; the mock is already free and
+      // deterministic): an identical conversation state — same model, role,
+      // as-of day, and full message history — replays without an API call,
+      // so scripted re-demos are free and instant. The chip-driven golden
+      // path chains identically turn over turn, so every beat hits.
+      const cacheKey = USE_MOCK
+        ? null
+        : createHash("sha256")
+            .update(JSON.stringify([MODEL_ID, body.role ?? "member", body.as_of_day ?? "", body.messages]))
+            .digest("hex");
+      if (cacheKey) {
+        const cache = loadChatCache();
+        if (cache[cacheKey]) {
+          res.writeHead(200).end(JSON.stringify({ ...cache[cacheKey], cached: true }));
+          return;
+        }
+      }
       const result = await runAgentLoop(body);
+      if (cacheKey) {
+        const cache = loadChatCache();
+        cache[cacheKey] = result;
+        saveChatCache(cache);
+      }
       res.writeHead(200).end(JSON.stringify(result));
       return;
     }

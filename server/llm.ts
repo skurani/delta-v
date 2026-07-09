@@ -28,7 +28,9 @@ export interface ChatModel {
   chat(system: string, messages: unknown[]): Promise<AgentTurn>;
 }
 
-export const MODEL_ID = "claude-opus-4-8";
+// Default model; CHAT_MODEL overrides (e.g. claude-haiku-4-5 for a cheap
+// tool-routing sanity pass before an Opus run).
+export const MODEL_ID = process.env.CHAT_MODEL ?? "claude-opus-4-8";
 
 // ---------------------------------------------------------------------------
 // Real path
@@ -41,7 +43,8 @@ class RealChatModel implements ChatModel {
     const response = await this.client.messages.create({
       model: MODEL_ID,
       max_tokens: 16000,
-      thinking: { type: "adaptive" },
+      // Haiku 4.5 predates adaptive thinking — omit the param there.
+      ...(MODEL_ID.includes("haiku") ? {} : { thinking: { type: "adaptive" as const } }),
       // Breakpoint on the system block caches tools + system as one stable
       // prefix; conversation history accrues cache reads as it grows.
       system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
