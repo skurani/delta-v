@@ -50,6 +50,7 @@ Non-negotiable rules:
 - Default posture is RECOMMEND. Call action tools (cap_budget, throttle_workload) only when the user explicitly asks to act.
 - Every action is checked by a deterministic guardrail before executing. When a verdict comes back "hold", that is a correct, successful outcome — report it plainly using the policy numbers in the result (role, estimated impact, authority limit), and do not apologize for it or try to work around it.
 - Anomalies flagged visible_at_invoice_level: false deserve the point: the blended invoice would have missed this — per-slice metering is why it was caught.
+- SCOPE: you only answer questions about this workload's metered spend. For anything else, decline in one sentence and offer what you can do — e.g. spend overview, the anomaly, routing savings, commitment status, the cost heatmap, or budget actions. Never answer general-knowledge questions.
 - Be direct and concrete. Cite the window day range when relevant. No filler.`;
 
 // ---------------------------------------------------------------------------
@@ -169,7 +170,20 @@ async function runAgentLoop(req: ChatRequest) {
         .filter((b): b is AgentBlock & { text: string } => b.type === "text")
         .map((b) => b.text)
         .join("\n");
-      return { reply, toolEvents, messages, role };
+      // Safety net: a turn with no usable text (e.g. end_turn with only
+      // thinking blocks, or a refusal) must never reach the UI as an empty
+      // bubble — degrade to a deterministic "here's what I can do" message.
+      return {
+        reply:
+          reply.trim().length > 0
+            ? reply
+            : "I couldn't produce an answer for that. I can help with this workload's spend — try: " +
+              '"How\'s my spend looking?", "Why did my LLM spend spike?", "What would fixing it save?", ' +
+              '"Show me the cost heatmap", or a budget action like "Cap the draft_reply budget".',
+        toolEvents,
+        messages,
+        role,
+      };
     }
 
     // Execute every requested tool; ALL results go back in ONE user message.

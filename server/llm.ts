@@ -78,7 +78,7 @@ const parseFeature = (q: string): string => {
 const SCRIPTS: Script[] = [
   {
     // Beat 4/5: "cap the draft_reply budget at $20" — the guardrail moment.
-    match: (q) => /\bcap\b|limit the|enforce/.test(q),
+    match: (q) => /\bcap\b|\blimit\b|enforce/.test(q),
     toolCalls: (q) => [
       { name: "cap_budget", input: { feature: parseFeature(q), monthly_amount_usd: parseCapAmount(q) } },
     ],
@@ -122,7 +122,7 @@ const SCRIPTS: Script[] = [
   },
   {
     // Beat 3: "what would fixing it save?"
-    match: (q) => /save|savings|fix|cheaper|route|routing/.test(q),
+    match: (q) => /save|savings|fix|cheaper|route|routing|optimi[sz]e/.test(q),
     toolCalls: (q) => [{ name: "get_routing_economics", input: { feature: parseFeature(q) } }],
     narrate: (results) => {
       const r = results.get("get_routing_economics") as Record<string, any> | undefined;
@@ -151,7 +151,7 @@ const SCRIPTS: Script[] = [
   {
     // Heatmap beat: "show me the cost heatmap" — MUST precede the summary
     // script, whose "spend|cost" keywords would otherwise swallow it.
-    match: (q) => /heatmap|matrix|cross[- ]?tab|feature and model/.test(q),
+    match: (q) => /heat[- ]?map|matrix|cross[- ]?tab|feature and model|by feature.{0,12}model/.test(q),
     toolCalls: () => [{ name: "get_cost_matrix", input: {} }],
     narrate: (results) => {
       const m = results.get("get_cost_matrix") as Record<string, any> | undefined;
@@ -164,7 +164,7 @@ const SCRIPTS: Script[] = [
   },
   {
     // Beat 1: "how's my spend looking?"
-    match: (q) => /spend|looking|overview|budget|month|on track|status|cost|forecast/.test(q),
+    match: (q) => /spend|looking|overview|budget|month|on track|status|cost|forecast|burn|how are we/.test(q),
     toolCalls: () => [
       { name: "get_spend_summary", input: {} },
       { name: "get_daily_series", input: { slice_by: "resource_type" } },
