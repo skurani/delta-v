@@ -304,6 +304,8 @@ button {
   border-radius: var(--r-chip);
   border: 1px solid var(--border);
   color: var(--text-2);
+  white-space: nowrap; /* pills never break internally; layout wraps instead */
+  flex-shrink: 0;
 }
 
 .chip.suggestion-chip {
@@ -312,6 +314,7 @@ button {
   text-align: left;
   text-transform: none;
   letter-spacing: 0.02em;
+  white-space: normal; /* full-sentence chips wrap in the 320px dock */
   transition: color 0.15s, border-color 0.15s;
 }
 
@@ -372,6 +375,7 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--r-panel);
   padding: 10px 12px;
+  overflow-x: auto; /* wide grids (heatmap) scroll inside the 320px dock, never clip */
 }
 
 .artifact-pinnable:hover {
@@ -591,10 +595,23 @@ button {
   gap: 16px;
 }
 
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .kpi {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0; /* let tiles shrink instead of spilling the grid */
 }
 
 .kpi-label {
@@ -624,14 +641,14 @@ button {
 .kpi-bar {
   margin-top: 7px;
   height: 3px;
-  background: var(--bg-page);
+  background: var(--border); /* lighter than the panel so the track reads */
   border-radius: var(--r-bar);
   overflow: hidden;
 }
 
 .kpi-bar-fill {
   height: 100%;
-  background: var(--text-2);
+  background: var(--text-1); /* bright fill vs mid-grey track */
 }
 
 .kpi-bar-fill.kpi-bar-over {
@@ -839,16 +856,25 @@ button {
 .heatmap-row-label {
   display: flex;
   align-items: center;
+  color: var(--text-3);
+}
+
+.heatmap-row-label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--text-3);
 }
 
 .heatmap-col-label {
   justify-content: center;
   text-align: center;
   min-width: 0;
+  /* full model names must stay readable: wrap on hyphens, never clip */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+  font-size: 10px;
+  letter-spacing: 0.04em;
 }
 
 .heatmap-cell {
