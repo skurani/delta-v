@@ -6,6 +6,8 @@ FinOps engine. It observes a simulated workload's multi-model LLM/API/compute
 spend, meters and attributes it, detects per-slice anomalies, forecasts
 against budget, and recommends fixes — with one guardrailed action path.
 SPEC.md is the original build spec; DEMO_SCRIPT.md is the repeatable demo.
+Full design spec, including brand guidelines and anything not yet built:
+docs/DESIGN.md (implemented tokens live in src/app/styles.css).
 
 ## Core principle: math for the meter, LLM for the judgment
 
