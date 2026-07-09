@@ -50,9 +50,21 @@ button {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 11.5px;
   font-weight: 400;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2em; /* spec eyebrow tracking; annotation contexts override to 0.06-0.1em */
   text-transform: uppercase;
   color: var(--text-2);
+}
+
+/* Data-annotation contexts keep the tighter spec band (+0.06-0.1em) so
+   long machine strings (breadcrumbs, scrubber, matrix labels) don't crowd. */
+.context-line,
+.scrubber .mono-label,
+.heatmap-scope,
+.heatmap-col-label,
+.heatmap-row-label,
+.modal-meta,
+.provenance {
+  letter-spacing: 0.08em;
 }
 
 .load-state {
@@ -112,15 +124,15 @@ button {
 }
 
 .wordmark {
-  font-weight: 700;
+  font-weight: 500;
   font-size: 17px;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.015em;
 }
 
 .descriptor {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 10.5px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-3);
 }
@@ -159,7 +171,7 @@ button {
   padding: 5px 14px;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 11.5px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-2);
   transition: background 0.15s, color 0.15s;
@@ -362,6 +374,10 @@ button {
   padding: 10px 12px;
 }
 
+.artifact-pinnable:hover {
+  border-color: var(--border-pinned); /* one step lighter than --border */
+}
+
 .artifact-head {
   display: flex;
   align-items: center;
@@ -380,8 +396,9 @@ button {
 }
 
 .pin-btn:hover {
-  color: var(--text-1);
-  border-color: var(--text-3);
+  background: var(--text-1);
+  color: var(--bg-page);
+  border-color: var(--text-1);
 }
 
 /* ---- canvas ---- */
@@ -541,7 +558,7 @@ button {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 11px;
   font-weight: 400;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-2);
 }
@@ -549,7 +566,7 @@ button {
 .subtitle {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-3);
 }
@@ -583,7 +600,7 @@ button {
 .kpi-label {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-3);
 }
@@ -594,6 +611,37 @@ button {
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
+
+.kpi-foot {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+.kpi-bar {
+  margin-top: 7px;
+  height: 3px;
+  background: var(--bg-page);
+  border-radius: var(--r-bar);
+  overflow: hidden;
+}
+
+.kpi-bar-fill {
+  height: 100%;
+  background: var(--text-2);
+}
+
+.kpi-bar-fill.kpi-bar-over {
+  background: var(--neg); /* semantic: past budget */
+}
+
+/* footnote signal colors must beat the .kpi-foot base color */
+.kpi-foot.status-under { color: var(--pos); }
+.kpi-foot.status-over { color: var(--neg); }
+.kpi-foot.status-near { color: var(--text-1); }
 
 /* ---- anomaly alert cards ---- */
 
@@ -890,7 +938,7 @@ button {
   text-align: left;
   font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2em;
   font-size: 10px;
   color: var(--text-3);
   padding: 8px 10px 6px 0;

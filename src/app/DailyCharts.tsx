@@ -2,13 +2,14 @@
 //  1. Total daily spend stacked by resource type — the executive picture.
 //     Fixed costs dominate, so a 3x LLM spike barely moves this chart.
 //  2. LLM-only daily spend — where model-routing anomalies are actually
-//     visible. This is the chart the Week-2 anomaly card will point at.
+//     visible.
 
 import { useMemo } from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -21,9 +22,9 @@ import type { ResourceType } from "../schema";
 import { shortDay, usd2 } from "./format";
 
 // Delta-V system: series colors are a neutral gray ramp — signal colors
-// (#8CC3F2 / #F2968C) are semantic-only and never decorate chart series.
-// The LLM series gets the brightest neutral because it's the series the
-// narrative reads, not a signal claim.
+// are semantic-only. The one sanctioned exception below: detector-flagged
+// anomalous days take signal/negative fill + axis label (spec §04), which
+// IS a semantic claim, not decoration.
 const RESOURCE_ORDER: ResourceType[] = ["api", "subscription", "compute", "llm"];
 const RESOURCE_COLOR: Record<ResourceType, string> = {
   api: "#8A8A8A",
@@ -31,8 +32,38 @@ const RESOURCE_COLOR: Record<ResourceType, string> = {
   compute: "#5E5E5E",
   llm: "#F2F2F2",
 };
+const NEG = "#F2968C";
 
-export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay: string }) {
+const TICK_STYLE = { fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" };
+
+/** X-axis tick that flips to signal/negative on detector-flagged days. */
+function anomalyTick(anomalous: Set<string>) {
+  return function AnomalyTick(props: { x?: number; y?: number; payload?: { value?: string } }) {
+    const day = String(props.payload?.value ?? "");
+    return (
+      <text
+        x={props.x}
+        y={(props.y ?? 0) + 10}
+        textAnchor="middle"
+        fontSize={11}
+        fontFamily="'IBM Plex Mono', monospace"
+        fill={anomalous.has(day) ? NEG : "#787878"}
+      >
+        {day}
+      </text>
+    );
+  };
+}
+
+export function DailyCharts({
+  events,
+  asOfDay,
+  anomalousDays,
+}: {
+  events: RatedEvent[];
+  asOfDay: string;
+  anomalousDays: Set<string>; // ISO days flagged by the anomaly detector
+}) {
   const rows = useMemo(() => {
     const byDay = new Map<string, Record<string, number>>();
     for (const e of events) {
@@ -45,9 +76,16 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([day, r]) => ({
         day: shortDay(day),
+        anomalous: anomalousDays.has(day),
         ...Object.fromEntries(RESOURCE_ORDER.map((t) => [t, Math.round((r[t] ?? 0) * 100) / 100])),
       }));
-  }, [events]);
+  }, [events, anomalousDays]);
+
+  const anomalousShort = useMemo(
+    () => new Set(rows.filter((r) => r.anomalous).map((r) => r.day)),
+    [rows],
+  );
+  const Tick = useMemo(() => anomalyTick(anomalousShort), [anomalousShort]);
 
   const tooltip = (
     <Tooltip
@@ -75,11 +113,18 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={rows} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="#2E2E2E" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} width={52} />
+              <XAxis dataKey="day" tick={<Tick />} interval="preserveStartEnd" />
+              <YAxis tick={TICK_STYLE} width={52} />
               {tooltip}
               {RESOURCE_ORDER.map((t) => (
-                <Bar key={t} dataKey={t} stackId="cost" fill={RESOURCE_COLOR[t]} />
+                <Bar key={t} dataKey={t} stackId="cost" fill={RESOURCE_COLOR[t]}>
+                  {/* Anomalous days: the LLM segment (the flagged slice) takes
+                      signal/negative — the semantic exception, per spec. */}
+                  {t === "llm" &&
+                    rows.map((r) => (
+                      <Cell key={r.day} fill={r.anomalous ? NEG : RESOURCE_COLOR.llm} />
+                    ))}
+                </Bar>
               ))}
             </BarChart>
           </ResponsiveContainer>
@@ -89,8 +134,8 @@ export function DailyCharts({ events, asOfDay }: { events: RatedEvent[]; asOfDay
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={rows} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid stroke="#2E2E2E" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 11, fill: "#787878", fontFamily: "'IBM Plex Mono', monospace" }} width={52} />
+              <XAxis dataKey="day" tick={<Tick />} interval="preserveStartEnd" />
+              <YAxis tick={TICK_STYLE} width={52} />
               {tooltip}
               <Line
                 type="monotone"

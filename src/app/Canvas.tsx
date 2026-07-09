@@ -163,25 +163,41 @@ function PinnedArtifact({ query, view, asOfDay }: { query: PinQuery; view: Engin
 // Builtin card bodies
 // ---------------------------------------------------------------------------
 
+// KPI cards per spec §04: eyebrow → value → mono footnote or 3px progress
+// bar. Footnotes take signal color only when the state is semantic.
 function Kpis({ view }: { view: EngineView }) {
   const { fc } = view;
+  const budgetUsed = fc.budget > 0 ? fc.spendToDate / fc.budget : 0;
   return (
     <div className="kpi-grid">
       <div className="kpi">
         <span className="kpi-label">spend to date</span>
         <span className="kpi-value">{usd2(fc.spendToDate)}</span>
+        <div className="kpi-bar" title={`${(budgetUsed * 100).toFixed(0)}% of budget`}>
+          <div
+            className={`kpi-bar-fill ${budgetUsed > 1 ? "kpi-bar-over" : ""}`}
+            style={{ width: `${Math.min(100, budgetUsed * 100)}%` }}
+          />
+        </div>
       </div>
       <div className="kpi">
         <span className="kpi-label">projected month-end</span>
         <span className={`kpi-value status-${fc.status}`}>{usd2(fc.projectedTotal)}</span>
+        <span className={`kpi-foot status-${fc.status}`}>
+          {usd2(Math.abs(fc.variance))} {fc.variance > 0 ? "over" : "under"} budget
+        </span>
       </div>
       <div className="kpi">
         <span className="kpi-label">budget</span>
         <span className="kpi-value">{usd(fc.budget)}</span>
+        <span className="kpi-foot">
+          day {fc.daysElapsed}/{fc.daysTotal} · {(budgetUsed * 100).toFixed(0)}% used
+        </span>
       </div>
       <div className="kpi">
         <span className="kpi-label">variable burn / day</span>
         <span className="kpi-value">{usd2(fc.variableDailyBurn)}</span>
+        <span className="kpi-foot">trailing 7-day avg</span>
       </div>
     </div>
   );
@@ -197,8 +213,17 @@ function BuiltinBody({ component, view, asOfDay }: { component: BuiltinComponent
       ) : (
         <p className="mono-label">no anomalies firing as of this day</p>
       );
-    case "daily-charts":
-      return <DailyCharts events={view.metered.events} asOfDay={asOfDay} />;
+    case "daily-charts": {
+      // Detector-flagged days (episode ranges across all alerts) get the
+      // semantic negative treatment in the daily bars.
+      const anomalousDays = new Set<string>();
+      for (const a of view.alerts) {
+        for (const d of view.elapsedDays) {
+          if (d >= a.episode.startDay && d <= a.episode.endDay) anomalousDays.add(d);
+        }
+      }
+      return <DailyCharts events={view.metered.events} asOfDay={asOfDay} anomalousDays={anomalousDays} />;
+    }
     case "forecast":
       return <ForecastCard fc={view.fc} byDay={view.attributed.byDay} allDays={view.allDays} />;
     case "commitments":

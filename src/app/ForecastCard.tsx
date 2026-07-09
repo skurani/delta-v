@@ -135,7 +135,7 @@ export function ForecastCard({
           />
           <ReferenceLine
             y={fc.budget}
-            stroke="#8A8A8A"
+            stroke="#484848"
             strokeWidth={1.5}
             label={{
               value: "budget",
