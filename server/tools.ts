@@ -6,6 +6,7 @@
 import { readFileSync } from "node:fs";
 import { detectAnomalies } from "../src/anomaly";
 import { attribute, topEntries, type AttributionResult } from "../src/attribution";
+import { costMatrix } from "../src/cost-matrix";
 import { forecast } from "../src/forecast";
 import { meterEvents, type MeterResult, type RatedEvent } from "../src/meter";
 import { routingEconomics } from "../src/routing-economics";
@@ -133,6 +134,8 @@ export function createToolExecutor(dataFile: string) {
         return v.metered.commitments;
       case "get_routing_economics":
         return routingEconomics(v.metered.events, String(input.feature ?? ""), v.elapsedDays.length);
+      case "get_cost_matrix":
+        return costMatrix(v.metered.events);
       case "cap_budget": {
         const feature = String(input.feature ?? "");
         const amount = Number(input.monthly_amount_usd ?? 0);
@@ -251,6 +254,12 @@ export const TOOL_DEFS = [
       properties: { feature: { type: "string", description: "feature name, e.g. 'draft_reply'" } },
       required: ["feature"],
     },
+  },
+  {
+    name: "get_cost_matrix",
+    description:
+      "Get the feature × model cross-tab of LLM spend (cost, events, tokens per combination) — LLM events only; model-less committed/flat spend is excluded. Call when the user asks for a heatmap, matrix, or cross-tab of spend, or which feature/model combinations drive LLM cost. The UI renders this as a pinnable heatmap.",
+    input_schema: { type: "object", properties: {}, required: [] },
   },
   {
     name: "cap_budget",

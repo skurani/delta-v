@@ -149,6 +149,20 @@ const SCRIPTS: Script[] = [
     },
   },
   {
+    // Heatmap beat: "show me the cost heatmap" — MUST precede the summary
+    // script, whose "spend|cost" keywords would otherwise swallow it.
+    match: (q) => /heatmap|matrix|cross[- ]?tab|feature and model/.test(q),
+    toolCalls: () => [{ name: "get_cost_matrix", input: {} }],
+    narrate: (results) => {
+      const m = results.get("get_cost_matrix") as Record<string, any> | undefined;
+      if (!m || m.cells.length === 0)
+        return "I computed the cost matrix but there is no LLM spend in this window.";
+      const hot = m.cells[0];
+      const share = m.total_cost > 0 ? ((hot.cost / m.total_cost) * 100).toFixed(0) : "0";
+      return `Here's the ${m.row_dimension} × ${m.col_dimension} matrix of LLM spend (${m.rows.length} features × ${m.cols.length} models, ${usd(m.total_cost)} total — LLM events only; committed/flat spend has no model dimension). The hottest cell is ${hot.row} × ${hot.col}: ${usd(hot.cost)} across ${hot.events.toLocaleString()} calls — ${share}% of all LLM spend concentrated in one combination. Click any cell to drill into the underlying events, or pin the heatmap to the canvas.`;
+    },
+  },
+  {
     // Beat 1: "how's my spend looking?"
     match: (q) => /spend|looking|overview|budget|month|on track|status|cost|forecast/.test(q),
     toolCalls: () => [
@@ -175,6 +189,7 @@ const SCRIPTS: Script[] = [
       `· "How's my spend looking this month?"\n` +
       `· "Why did my LLM spend spike?"\n` +
       `· "What would fixing it save?"\n` +
+      `· "Show me the cost heatmap"\n` +
       `· "Cap the draft_reply budget at $20/mo" (or throttle/commitment questions)\n` +
       `Run the server without USE_MOCK_LLM (with an API key) for free-form questions.`,
   },
