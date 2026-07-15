@@ -60,6 +60,11 @@ export type CanvasCard =
   | { id: string; kind: "builtin"; component: BuiltinComponent }
   | { id: string; kind: "pinned"; query: PinQuery; provenance: Provenance };
 
+/** Identity of a pinned card: tool + query input + as-of day. Input keys are
+    sorted so identical queries built in different order still match. */
+export const pinKey = (query: PinQuery, pinnedAsOf: string) =>
+  JSON.stringify([query.tool, Object.entries(query.input).sort(), pinnedAsOf]);
+
 export interface EngineView {
   metered: MeterResult;
   attributed: AttributionResult;
@@ -303,8 +308,12 @@ export function Canvas({
     if (pinJson) {
       try {
         const { query, provenance } = JSON.parse(pinJson);
-        const card: CanvasCard = { id: `pin-${Date.now()}`, kind: "pinned", query, provenance };
-        setCards((cs) => [...cs.slice(0, index), card, ...cs.slice(index)]);
+        const key = pinKey(query, provenance.pinnedAsOf);
+        setCards((cs) => {
+          if (cs.some((c) => c.kind === "pinned" && pinKey(c.query, c.provenance.pinnedAsOf) === key)) return cs;
+          const card: CanvasCard = { id: `pin-${Date.now()}`, kind: "pinned", query, provenance };
+          return [...cs.slice(0, index), card, ...cs.slice(index)];
+        });
       } catch {
         // malformed drag payload — ignore
       }

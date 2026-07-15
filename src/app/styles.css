@@ -63,6 +63,8 @@ button {
   border-radius: var(--r-btn);
   padding: 2px 7px;
   letter-spacing: 0.1em;
+  flex: none;
+  white-space: nowrap;
 }
 
 .mode-badge-real {
@@ -165,12 +167,16 @@ button {
   display: flex;
   align-items: center;
   gap: 20px;
+  min-width: 0; /* let the context line yield; controls never clip */
 }
 
 .context-line {
   color: var(--text-3);
   padding-right: 20px;
   border-right: 1px solid var(--border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .scrubber {
@@ -178,6 +184,7 @@ button {
   flex-direction: column;
   gap: 3px;
   min-width: 240px;
+  flex: none;
 }
 
 .scrubber input {
@@ -189,10 +196,13 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--r-chip);
   overflow: hidden;
+  flex: none; /* Beat 5 needs the Eng segment reachable — never shrink or clip */
 }
 
 .role-seg {
-  padding: 5px 14px;
+  width: 64px; /* equal segments, sized to the wider label (FINOPS) */
+  padding: 5px 0;
+  text-align: center;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 11.5px;
   letter-spacing: 0.2em;

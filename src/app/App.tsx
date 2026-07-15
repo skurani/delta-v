@@ -16,6 +16,7 @@ import { buildWindowSummary } from "../summarize";
 import {
   Canvas,
   DEFAULT_CARDS,
+  pinKey,
   type CanvasCard,
   type EngineView,
   type PinQuery,
@@ -86,10 +87,11 @@ export function App() {
   }, [data, asOfDay, allDays]);
 
   function pinCard(query: PinQuery, provenance: Provenance) {
-    setCards((cs) => [
-      ...cs,
-      { id: `pin-${Date.now()}-${cs.length}`, kind: "pinned", query, provenance },
-    ]);
+    setCards((cs) =>
+      cs.some((c) => c.kind === "pinned" && pinKey(c.query, c.provenance.pinnedAsOf) === pinKey(query, provenance.pinnedAsOf))
+        ? cs // already on the canvas — pinning again is a no-op, not a duplicate
+        : [...cs, { id: `pin-${Date.now()}-${cs.length}`, kind: "pinned", query, provenance }],
+    );
   }
 
   if (error) return <div className="load-state">Failed to load usage data: {error}</div>;

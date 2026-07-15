@@ -4,7 +4,7 @@
 // (primary path) and are draggable onto the canvas (enhancement). History is
 // client-held in App state and echoed opaquely (thinking blocks included).
 
-import { useState, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
+import { useEffect, useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { AnomalyAlert } from "../anomaly";
@@ -33,13 +33,14 @@ export interface DisplayTurn {
   toolEvents?: ToolEvent[];
 }
 
-const SUGGESTIONS = [
-  "How's my spend looking this month?",
-  "Why did my LLM spend spike?",
-  "What would fixing it save?",
-  "Show me the cost heatmap",
-  "Cap the draft_reply budget at $20/mo",
-  "Cap the draft_reply budget at $70/mo",
+const SUGGESTIONS: { text: string; repeatable?: boolean }[] = [
+  { text: "How's my spend looking this month?" },
+  { text: "Why did my LLM spend spike?" },
+  { text: "What would fixing it save?" },
+  { text: "Show me the cost heatmap" },
+  // Actions stay available: re-running the cap (held vs executed branch) IS the demo.
+  { text: "Cap the draft_reply budget at $20/mo", repeatable: true },
+  { text: "Cap the draft_reply budget at $70/mo", repeatable: true },
 ];
 
 const PINNABLE = new Set(["get_daily_series", "get_attribution", "get_anomalies", "get_cost_matrix"]);
@@ -152,6 +153,19 @@ export function Chat({
 }) {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const logRef = useRef<HTMLDivElement | null>(null);
+
+  // Questions already sent this session drop out of the suggestion rows;
+  // repeatable action chips stay (re-running them is part of the demo).
+  const asked = new Set(turns.filter((t) => t.who === "user").map((t) => t.text));
+  const suggestions = SUGGESTIONS.filter((s) => s.repeatable || !asked.has(s.text)).map((s) => s.text);
+
+  // Bring the newest turn (or the Working… bubble) into view on append.
+  // Deliberately not continuous: the user can scroll up freely between turns.
+  useEffect(() => {
+    const log = logRef.current;
+    if (log) log.scrollTo({ top: log.scrollHeight, behavior: "smooth" });
+  }, [turns.length, busy]);
 
   async function send(text: string) {
     if (!text.trim() || busy) return;
@@ -203,7 +217,7 @@ export function Chat({
 
   return (
     <aside className="chat-dock">
-      <div className="chat-log">
+      <div className="chat-log" ref={logRef}>
         {turns.length === 0 && (
           <div className="chat-empty">
             <p className="chat-hint">
@@ -211,7 +225,7 @@ export function Chat({
               it never invents numbers. Actions run through a guardrail. Try:
             </p>
             <div className="chat-suggestions">
-              {SUGGESTIONS.map((s) => (
+              {suggestions.map((s) => (
                 <button key={s} className="chip suggestion-chip" onClick={() => send(s)} type="button">
                   {s}
                 </button>
@@ -258,7 +272,7 @@ export function Chat({
       {turns.length > 0 && (
         <div className="chat-try-row">
           <span className="mono-label">try also</span>
-          {SUGGESTIONS.map((s) => (
+          {suggestions.map((s) => (
             <button
               key={s}
               className="chip suggestion-chip"
