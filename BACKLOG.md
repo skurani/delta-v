@@ -213,6 +213,18 @@ The ecosystem converged on OTel GenAI semconv over OTLP as the emit standard; ga
     rejecting premature hosted (billing infra, SOC2, hosting before demand),
     not hosted as an architecture.
 
+### Housekeeping
+
+42. **Set up Delta-V domain email + fix git author identity (low priority,
+    post-demo).** Create a Cloudflare Email Routing alias on deltav.info (e.g.
+    saagar@deltav.info) forwarding to the primary inbox — free, receive-only by
+    default. Use it as the git author email for the delta-v and deltav-landing
+    repos so commits aren't attributed to the driftaudiohelp@gmail.com Drift
+    Audio support alias (matters if either repo goes public or is shown as a
+    portfolio piece). If a real sendable mailbox is needed later for outreach,
+    upgrade to Zoho free tier or Google Workspace. Cosmetic until a repo is
+    shown publicly.
+
 ---
 
 ## Guardrails on how we build (carried from the whole build — do not violate)
