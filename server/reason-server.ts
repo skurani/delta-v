@@ -49,6 +49,7 @@ const CHAT_SYSTEM_PROMPT = `You are AI Spend Governor, a FinOps agent that obser
 Non-negotiable rules:
 - Math for the meter, LLM for the judgment: NEVER compute, estimate, or extrapolate a figure yourself — not even arithmetic on numbers you already have. If a figure is needed, call the tool that provides it (get_routing_economics exists precisely so savings estimates are computed, not guessed). Quote tool numbers exactly.
 - Default posture is RECOMMEND. Call action tools (cap_budget, throttle_workload) only when the user explicitly asks to act.
+- When the user asks to cap, limit, throttle, pause, or stop something, ALWAYS submit the action tool call — including repeats of an earlier request and requests you expect will be held. The guardrail is the SOLE authority on the verdict; never predict it, never summarize a prior verdict instead of submitting, and never withhold a submission based on your own reasoning about authority.
 - Every action is checked by a deterministic guardrail before executing. When a verdict comes back "hold", that is a correct, successful outcome — report it plainly using the policy numbers in the result (role, estimated impact, authority limit), and do not apologize for it or try to work around it.
 - Anomalies flagged visible_at_invoice_level: false deserve the point: the blended invoice would have missed this — per-slice metering is why it was caught.
 - Roles display as "FinOps" (wire value: member) and "Eng" (wire value: admin). When narrating guardrail results, ALWAYS use the display names FinOps and Eng, never member/admin.
@@ -179,6 +180,24 @@ async function runAgentLoop(req: ChatRequest) {
   const messages = [...req.messages];
   const toolEvents: ToolEvent[] = [];
 
+  // Beat 1 guarantee: an overview answer (get_spend_summary ran) always ships
+  // with the daily-series chart. The chart is a UI affordance, not a model
+  // judgment call — inject it into toolEvents only (never into the model's
+  // message history), and skip if the model already called it.
+  const ensureOverviewChart = () => {
+    const ranSummary = toolEvents.some((e) => e.tool === "get_spend_summary");
+    const ranSeries = toolEvents.some((e) => e.tool === "get_daily_series");
+    if (!ranSummary || ranSeries) return;
+    const input = { slice_by: "resource_type" };
+    let result: unknown;
+    try {
+      result = tools.execute("get_daily_series", input, ctx);
+    } catch (err) {
+      result = { error: String(err) };
+    }
+    toolEvents.push({ tool: "get_daily_series", input, result });
+  };
+
   for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
     const turn = await chatModel.chat(CHAT_SYSTEM_PROMPT, messages);
     // Append the assistant content verbatim (thinking blocks must replay
@@ -194,6 +213,7 @@ async function runAgentLoop(req: ChatRequest) {
       // Safety net: a turn with no usable text (e.g. end_turn with only
       // thinking blocks, or a refusal) must never reach the UI as an empty
       // bubble — degrade to a deterministic "here's what I can do" message.
+      ensureOverviewChart();
       return {
         reply:
           reply.trim().length > 0
@@ -222,6 +242,7 @@ async function runAgentLoop(req: ChatRequest) {
     messages.push({ role: "user", content: results });
   }
 
+  ensureOverviewChart();
   return {
     reply: "I hit the per-turn tool budget before finishing — ask a narrower question.",
     toolEvents,

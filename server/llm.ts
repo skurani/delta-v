@@ -180,7 +180,7 @@ const SCRIPTS: Script[] = [
       const f = s.forecast;
       const anomalyNote =
         s.anomalies.length > 0
-          ? ` One flag: the detector has an active ${s.anomalies[0].type === "cost_mix" ? "cost-mix" : "volume"} anomaly on the ${s.anomalies[0].slice} slice (peak ${s.anomalies[0].peak_ratio}x baseline) — ask me about the spike for details.`
+          ? ` One flag: the detector has an active ${s.anomalies[0].type === "cost_mix" ? "cost-mix" : "volume"} anomaly on the ${s.anomalies[0].slice} slice — ask me about the spike for details.`
           : " No anomalies are currently firing.";
       return `Through day ${s.window.days_elapsed} of ${s.window.days_total}, you've spent ${usd(s.totals.rated_cost_to_date)} and the window is projected to end at ${usd(f.projected_window_total)} against a ${usd(f.budget)} budget — ${f.variance > 0 ? usd(f.variance) + " over" : usd(-f.variance) + " under"}, status ${f.status}. Spend is dominated by ${s.by_resource_type[0].key} (${usd(s.by_resource_type[0].cost)}, ${(s.by_resource_type[0].share * 100).toFixed(0)}%). Variable burn is ${usd(f.variable_daily_burn)}/day.${anomalyNote}`;
     },

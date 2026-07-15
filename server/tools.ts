@@ -106,8 +106,21 @@ export function createToolExecutor(dataFile: string) {
   function execute(name: string, input: Record<string, unknown>, ctx: ToolContext): unknown {
     const v = view(ctx.asOfDay);
     switch (name) {
-      case "get_spend_summary":
-        return buildWindowSummary(v.config, v.metered, v.attributed, fc(v), detectAnomalies(v.metered.events, v.elapsedDays));
+      case "get_spend_summary": {
+        // The summary carries only an anomaly TEASER (type + slice + active) —
+        // drivers, peak ratios, and invoice visibility live in get_anomalies,
+        // so an overview answer structurally cannot spoil the drill-down beat.
+        const s = buildWindowSummary(v.config, v.metered, v.attributed, fc(v), detectAnomalies(v.metered.events, v.elapsedDays));
+        return {
+          ...s,
+          anomalies: s.anomalies.map((a) => ({
+            type: a.type,
+            slice: a.slice,
+            ongoing: a.ongoing,
+            detail: "anomaly active — call get_anomalies for drivers, thresholds, and invoice visibility",
+          })),
+        };
+      }
       case "get_attribution": {
         const dimension = String(input.dimension ?? "resource_type");
         const dimMap: Record<string, keyof AttributionResult> = {
@@ -195,7 +208,7 @@ export const TOOL_DEFS = [
   {
     name: "get_spend_summary",
     description:
-      "Get the full picture of the current spend window: totals, forecast vs budget, top slices by resource/model/feature, commitment status, and any detected anomalies. Call this FIRST for any broad question like 'how is my spend looking'.",
+      "Get the full picture of the current spend window: totals, forecast vs budget, top slices by resource/model/feature, commitment status, and a minimal flag for any active anomaly (full detail via get_anomalies). Call this FIRST for any broad question like 'how is my spend looking'.",
     input_schema: { type: "object", properties: {}, required: [] },
   },
   {
