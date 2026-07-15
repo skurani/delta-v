@@ -39,6 +39,16 @@ export function App() {
   const [chatTurns, setChatTurns] = useState<DisplayTurn[]>([]);
   const chatApiMessages = useRef<unknown[]>([]);
   const [cards, setCards] = useState<CanvasCard[]>(DEFAULT_CARDS);
+  const [serverMode, setServerMode] = useState<"mock" | "real" | "offline" | null>(null);
+
+  // Mode badge data: checked once at page load (the demo flow starts the
+  // server before the browser opens; no live tracking by design).
+  useEffect(() => {
+    fetch("/api/health")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((h) => setServerMode(h.mode === "mock" ? "mock" : "real"))
+      .catch(() => setServerMode("offline"));
+  }, []);
 
   useEffect(() => {
     fetch("/usage-events.json")
@@ -96,6 +106,7 @@ export function App() {
         onScrub={setAsOfIndex}
         role={role}
         onRoleChange={setRole}
+        serverMode={serverMode}
         context={{
           customerId: data.config.customer_id,
           teamId: data.config.team_id,

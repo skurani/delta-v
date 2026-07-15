@@ -21,6 +21,7 @@ export function TopBar({
   onScrub,
   role,
   onRoleChange,
+  serverMode,
   context,
 }: {
   asOfDay: string;
@@ -31,6 +32,7 @@ export function TopBar({
   onScrub: (index: number) => void;
   role: Role;
   onRoleChange: (role: Role) => void;
+  serverMode: "mock" | "real" | "offline" | null; // null = health check in flight
   context: { customerId: string; teamId: string; workloadId: string };
 }) {
   return (
@@ -43,6 +45,20 @@ export function TopBar({
         </div>
       </div>
       <div className="topbar-controls">
+        {serverMode && (
+          <span
+            className={`mono-label mode-badge mode-badge-${serverMode}`}
+            title={
+              serverMode === "mock"
+                ? "Agent server in mock mode — scripted golden-path replies, no API calls"
+                : serverMode === "real"
+                  ? "Agent server in real mode — live model calls"
+                  : "Agent server unreachable — start it with npm run reason (or reason:mock)"
+            }
+          >
+            {serverMode === "offline" ? "SERVER OFFLINE" : serverMode.toUpperCase()}
+          </span>
+        )}
         <span className="context-line mono-label" title="customer / team / workload">
           {context.customerId} / {context.teamId} / {context.workloadId}
         </span>

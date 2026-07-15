@@ -55,6 +55,30 @@ button {
   color: var(--text-2);
 }
 
+/* Server-mode badge (REAL / MOCK / SERVER OFFLINE): monochrome — dim for
+   mock, bright for real; offline is a genuinely broken state, so it takes
+   the semantic negative. */
+.mode-badge {
+  border: 1px solid var(--border);
+  border-radius: var(--r-btn);
+  padding: 2px 7px;
+  letter-spacing: 0.1em;
+}
+
+.mode-badge-real {
+  color: var(--text-1);
+  border-color: var(--border-pinned);
+}
+
+.mode-badge-mock {
+  color: var(--text-2);
+}
+
+.mode-badge-offline {
+  color: var(--neg);
+  border-color: color-mix(in srgb, var(--neg) 40%, var(--border));
+}
+
 /* Data-annotation contexts keep the tighter spec band (+0.06-0.1em) so
    long machine strings (breadcrumbs, scrubber, matrix labels) don't crowd. */
 .context-line,

@@ -259,6 +259,10 @@ const server = http.createServer(async (req, res) => {
   for await (const chunk of req) chunks.push(chunk);
 
   try {
+    if (req.method === "GET" && req.url === "/api/health") {
+      res.writeHead(200).end(JSON.stringify({ mode: USE_MOCK ? "mock" : "real", model: USE_MOCK ? "mock" : MODEL_ID }));
+      return;
+    }
     if (req.method === "POST" && req.url === "/api/reason") {
       const { summary } = JSON.parse(Buffer.concat(chunks).toString("utf8"));
       if (!summary) throw new Error("body must be { summary: WindowSummary }");
@@ -297,7 +301,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200).end(JSON.stringify(result));
       return;
     }
-    res.writeHead(404).end(JSON.stringify({ error: "POST /api/reason or /api/chat" }));
+    res.writeHead(404).end(JSON.stringify({ error: "GET /api/health, POST /api/reason, or POST /api/chat" }));
   } catch (err) {
     const status =
       err instanceof Anthropic.AuthenticationError ? 401 :
@@ -310,5 +314,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`AI Spend Control Plane server on http://localhost:${PORT}`);
   console.log(`mode: ${USE_MOCK ? "MOCK (USE_MOCK_LLM=true — scripted, free)" : `real (${MODEL_ID})`}`);
-  console.log(`endpoints: POST /api/reason, POST /api/chat`);
+  console.log(`endpoints: GET /api/health, POST /api/reason, POST /api/chat`);
 });
