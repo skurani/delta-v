@@ -8,7 +8,7 @@
 // so pins stay live as the as-of scrubber moves and the canvas never
 // depends on the server. All layout state is in-memory, session-only.
 
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import type { AnomalyAlert } from "../anomaly";
 import type { AttributionResult, Rollup } from "../attribution";
 import { topEntries } from "../attribution";
@@ -264,6 +264,24 @@ export function Canvas({
   asOfDay: string;
 }) {
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const cellRefs = useRef(new Map<string, HTMLElement>());
+  const prevIds = useRef<Set<string> | null>(null);
+  const [flashId, setFlashId] = useState<string | null>(null);
+
+  // A pinned card that wasn't in the previous render just landed (via PIN
+  // button or drag-drop) — bring it into view and flash it once. prevIds
+  // starts null so the initial render never flashes.
+  useEffect(() => {
+    const fresh = prevIds.current
+      ? cards.find((c) => c.kind === "pinned" && !prevIds.current!.has(c.id))
+      : undefined;
+    prevIds.current = new Set(cards.map((c) => c.id));
+    if (!fresh) return;
+    cellRefs.current.get(fresh.id)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    setFlashId(fresh.id);
+    const t = setTimeout(() => setFlashId(null), 1500);
+    return () => clearTimeout(t);
+  }, [cards]);
 
   function handleDrop(e: React.DragEvent, index: number) {
     e.preventDefault();
@@ -320,10 +338,15 @@ export function Canvas({
         {cards.map((card, i) => (
           <section
             key={card.id}
+            ref={(el) => {
+              if (el) cellRefs.current.set(card.id, el);
+              else cellRefs.current.delete(card.id);
+            }}
             className={[
               "cell",
               `span-${cardSpan(card)}`,
               card.kind === "pinned" ? "cell-pinned" : "",
+              flashId === card.id ? "cell-flash" : "",
               dropIndex === i ? "cell-drop-before" : "",
             ].join(" ")}
             onDragOver={(e) => {

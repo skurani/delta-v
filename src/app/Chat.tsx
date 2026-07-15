@@ -5,6 +5,8 @@
 // client-held in App state and echoed opaquely (thinking blocks included).
 
 import { useState, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { AnomalyAlert } from "../anomaly";
 import type { Rollup } from "../attribution";
 import type { CostMatrix } from "../cost-matrix";
@@ -27,6 +29,7 @@ interface ToolEvent {
 export interface DisplayTurn {
   who: "user" | "agent";
   text: string;
+  plain?: boolean; // error/system replies render as raw text, not markdown
   toolEvents?: ToolEvent[];
 }
 
@@ -36,6 +39,7 @@ const SUGGESTIONS = [
   "What would fixing it save?",
   "Show me the cost heatmap",
   "Cap the draft_reply budget at $20/mo",
+  "Cap the draft_reply budget at $70/mo",
 ];
 
 const PINNABLE = new Set(["get_daily_series", "get_attribution", "get_anomalies", "get_cost_matrix"]);
@@ -185,7 +189,7 @@ export function Chat({
     } catch (err) {
       const hint =
         err instanceof TypeError ? " — is the server running? (npm run reason)" : "";
-      setTurns((t) => [...t, { who: "agent", text: `Error: ${String(err)}${hint}` }]);
+      setTurns((t) => [...t, { who: "agent", text: `Error: ${String(err)}${hint}`, plain: true }]);
     } finally {
       setBusy(false);
     }
@@ -226,7 +230,13 @@ export function Chat({
                 ))}
               </div>
             )}
-            <div className="chat-bubble">{turn.text}</div>
+            <div className="chat-bubble">
+              {turn.who === "agent" && !turn.plain ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{turn.text}</ReactMarkdown>
+              ) : (
+                turn.text
+              )}
+            </div>
             {turn.toolEvents?.map((e, j) => (
               <ToolArtifact
                 key={j}

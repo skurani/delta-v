@@ -1,6 +1,6 @@
 # Delta-V
 
-**AI Spend Governor** — a FinOps agent that watches a workload's multi-model
+**AI Spend Control Plane** — a FinOps agent that watches a workload's multi-model
 LLM/API/compute spend, meters and attributes every event, catches the
 anomalies a blended invoice hides, forecasts against budget, and recommends
 fixes. One guardrailed action path lets it *act* within scoped authority —

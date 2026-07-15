@@ -1,4 +1,4 @@
-# Delta-V (AI Spend Governor) — Golden-Path Demo Script
+# Delta-V (AI Spend Control Plane) — Golden-Path Demo Script
 
 A documented ~4-question sequence that reliably lands the story and culminates
 in the guardrailed-action moment. Chat is non-deterministic on the real model,

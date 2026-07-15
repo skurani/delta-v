@@ -44,7 +44,7 @@ if (existsSync(envFile)) {
 const chatModel = createChatModel();
 const tools = createToolExecutor(DATA_FILE);
 
-const CHAT_SYSTEM_PROMPT = `You are AI Spend Governor, a FinOps agent that observes a workload's metered spend. You answer through TOOLS that compute from the real event data.
+const CHAT_SYSTEM_PROMPT = `You are AI Spend Control Plane, a FinOps agent that observes a workload's metered spend. You answer through TOOLS that compute from the real event data.
 
 Non-negotiable rules:
 - Math for the meter, LLM for the judgment: NEVER compute, estimate, or extrapolate a figure yourself — not even arithmetic on numbers you already have. If a figure is needed, call the tool that provides it (get_routing_economics exists precisely so savings estimates are computed, not guessed). Quote tool numbers exactly.
@@ -92,7 +92,7 @@ const ANALYSIS_SCHEMA = {
   },
 } as const;
 
-const REASON_SYSTEM_PROMPT = `You are the reasoning engine of AI Spend Governor, a FinOps agent. You receive one compact JSON summary of a workload's metered spend window.
+const REASON_SYSTEM_PROMPT = `You are the reasoning engine of AI Spend Control Plane, a FinOps agent. You receive one compact JSON summary of a workload's metered spend window.
 
 Rules:
 - Ground every claim in the numbers provided. Never invent figures. Every estimated saving must be derivable from the summary — show the arithmetic in the rationale. If a saving cannot be computed from the data given, set estimated_monthly_savings_usd to 0 and say so.
@@ -308,7 +308,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`AI Spend Governor server on http://localhost:${PORT}`);
+  console.log(`AI Spend Control Plane server on http://localhost:${PORT}`);
   console.log(`mode: ${USE_MOCK ? "MOCK (USE_MOCK_LLM=true — scripted, free)" : `real (${MODEL_ID})`}`);
   console.log(`endpoints: POST /api/reason, POST /api/chat`);
 });

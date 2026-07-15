@@ -39,7 +39,7 @@ export function TopBar({
         <LogoMark size={28} />
         <div className="lockup-text">
           <span className="wordmark">Delta-V</span>
-          <span className="descriptor">AI Spend Governor</span>
+          <span className="descriptor">AI Spend Control Plane</span>
         </div>
       </div>
       <div className="topbar-controls">

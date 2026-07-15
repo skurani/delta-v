@@ -10,7 +10,7 @@
 
 ### 01 Overview
 
-Delta-V is an AI spend governor: a dashboard that monitors, attributes, and forecasts LLM API spend, with an always-on copilot for investigation. This spec covers the shipped hi-fi design — the left-rail chat dock layout.
+Delta-V is an AI spend control plane: a dashboard that monitors, attributes, and forecasts LLM API spend, with an always-on copilot for investigation. This spec covers the shipped hi-fi design — the left-rail chat dock layout.
 
 Canvas: 1440 × 940 desktop. Chat dock is a fixed 320px left column; the canvas takes the remainder. Chat and canvas are visible simultaneously — answers from the copilot can be pinned to the canvas as live cards.
 
@@ -92,7 +92,7 @@ A film-grain overlay sits above the whole app at 14% opacity (SVG fractal noise,
 ### 01 Logo
 
 - **Primary lockup · horizontal:** △ Delta-V
-- **Stacked · with descriptor:** △ / Delta-V / AI SPEND GOVERNOR
+- **Stacked · with descriptor:** △ / Delta-V / AI SPEND CONTROL PLANE
 - **Positive · on light:** same lockup, dark text on light background
 - **Mark · app icon & small sizes:** triangle mark alone at 32 / 20 / 14px
 

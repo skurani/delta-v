@@ -7,7 +7,7 @@
 ---
 
 ## What Delta-V is (one line)
-An AI spend governor: a chat-primary agent + composable dashboard over a deterministic FinOps engine, that meters/attributes/forecasts LLM+API+compute spend and governs actions through a guardrail. Product name **Delta-V**; descriptor "AI Spend Governor." Solo build, hobby-with-monetization-intent, alongside an active job search.
+An AI spend control plane: a chat-primary agent + composable dashboard over a deterministic FinOps engine, that meters/attributes/forecasts LLM+API+compute spend and governs actions through a guardrail. Product name **Delta-V**; descriptor "AI Spend Control Plane." Solo build, hobby-with-monetization-intent, alongside an active job search.
 
 ## Repo
 - Private GitHub: `github.com/driftaudiodev/delta-v`

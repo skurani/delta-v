@@ -1,6 +1,6 @@
 # Delta-V — project context
 
-Delta-V (descriptor: "AI Spend Governor") is a FinOps agent POC and portfolio
+Delta-V (descriptor: "AI Spend Control Plane") is a FinOps agent POC and portfolio
 piece: a chat-primary agent + composable dashboard over a deterministic
 FinOps engine. It observes a simulated workload's multi-model LLM/API/compute
 spend, meters and attributes it, detects per-slice anomalies, forecasts

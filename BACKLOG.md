@@ -1,6 +1,6 @@
 # Delta-V — Backlog & Definition of Done
 
-**Product:** Delta-V — an AI spend governor. A chat-primary agent plus a composable dashboard that meters, attributes, forecasts, and governs LLM/API/compute spend over a metered workload.
+**Product:** Delta-V — an AI spend control plane. A chat-primary agent plus a composable dashboard that meters, attributes, forecasts, and governs LLM/API/compute spend over a metered workload.
 
 **Purpose of this doc:** the running backlog and the explicit finish line for the POC. Two horizons: **POC (the demoable artifact)** and **Beyond POC (the monetizable MVP path)**. Items are checked when their done-criteria are met.
 

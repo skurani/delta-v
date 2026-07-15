@@ -1,6 +1,6 @@
 # FinOps Agent POC — Build Spec
 
-**Product name:** AI Spend Governor
+**Product name:** AI Spend Control Plane
 **Folder/repo name:** `ai-spend-agent` (terse for typing; product name is what shows in the UI and demo)
 
 **What it is (one-liner):** A FinOps agent that observes a workload's multi-model LLM/API/compute spend, meters and attributes it, forecasts burn, catches runaway/inefficient usage, and *recommends* fixes — with one guardrailed *action* beat where it holds an over-budget workload before the spend lands.

@@ -251,6 +251,93 @@ button {
   color: var(--text-3);
 }
 
+/* Agent bubbles render markdown (GFM). Prose stays Schibsted; anything
+   machine — code, tables — goes IBM Plex Mono. pre-wrap moves from the
+   bubble (it would render markdown's inter-block newlines) down to <p>,
+   where it preserves soft line breaks in plain-ish replies. */
+.chat-agent .chat-bubble {
+  white-space: normal;
+}
+
+.chat-agent .chat-bubble p {
+  white-space: pre-wrap;
+  margin: 0 0 8px;
+}
+
+.chat-agent .chat-bubble ul,
+.chat-agent .chat-bubble ol {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+.chat-agent .chat-bubble li {
+  margin-bottom: 2px;
+}
+
+.chat-agent .chat-bubble h1,
+.chat-agent .chat-bubble h2,
+.chat-agent .chat-bubble h3,
+.chat-agent .chat-bubble h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.chat-agent .chat-bubble > :last-child {
+  margin-bottom: 0;
+}
+
+.chat-agent .chat-bubble a {
+  color: var(--text-1);
+  text-decoration: underline;
+}
+
+.chat-agent .chat-bubble code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  background: color-mix(in srgb, var(--text-1) 7%, transparent);
+  padding: 1px 4px;
+  border-radius: var(--r-btn);
+}
+
+.chat-agent .chat-bubble pre {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  background: var(--bg-rail);
+  border: 1px solid var(--border);
+  border-radius: var(--r-btn);
+  padding: 8px 10px;
+  overflow-x: auto;
+  margin: 0 0 8px;
+}
+
+.chat-agent .chat-bubble pre code {
+  background: none;
+  padding: 0;
+}
+
+.chat-agent .chat-bubble table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  margin: 0 0 8px;
+}
+
+.chat-agent .chat-bubble th,
+.chat-agent .chat-bubble td {
+  border: 1px solid var(--border);
+  padding: 3px 7px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.chat-agent .chat-bubble th {
+  color: var(--text-2);
+  font-weight: 400;
+}
+
 .chat-tools-used {
   display: flex;
   flex-wrap: wrap;
@@ -453,6 +540,24 @@ button {
 .cell-drop-before {
   outline: 1px dashed var(--text-1);
   outline-offset: 3px;
+}
+
+/* One-shot arrival flash for a just-pinned card. Monochrome per the brand
+   rule (signal colors are semantic-only): Signal White decaying to the
+   pinned border. */
+.cell-flash {
+  animation: pin-flash 1.5s ease-out;
+}
+
+@keyframes pin-flash {
+  0% {
+    border-color: var(--text-1);
+    box-shadow: 0 0 0 1px var(--text-1);
+  }
+  100% {
+    border-color: var(--border-pinned);
+    box-shadow: 0 0 0 0 transparent;
+  }
 }
 
 .cell-chrome {
