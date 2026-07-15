@@ -23,7 +23,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createChatModel, MODEL_ID, mockAnalysis, USE_MOCK, type AgentBlock } from "./llm";
 import type { Role } from "./policy";
-import { createToolExecutor, type ToolEvent } from "./tools";
+import { createToolExecutor, TOOL_DEFS, type ToolEvent } from "./tools";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CACHE_FILE = join(ROOT, "data", "reasoning-cache.json");
@@ -54,6 +54,12 @@ Non-negotiable rules:
 - Roles display as "FinOps" (wire value: member) and "Eng" (wire value: admin). When narrating guardrail results, ALWAYS use the display names FinOps and Eng, never member/admin.
 - SCOPE: you only answer questions about this workload's metered spend. For anything else, decline in one sentence and offer what you can do — e.g. spend overview, the anomaly, routing savings, commitment status, the cost heatmap, or budget actions. Never answer general-knowledge questions.
 - Be direct and concrete. Cite the window day range when relevant. No filler.`;
+
+// Any change to the system prompt or tool definitions must invalidate cached
+// chat replies — they change what the model would say for the same messages.
+const CHAT_CONFIG_HASH = createHash("sha256")
+  .update(CHAT_SYSTEM_PROMPT + JSON.stringify(TOOL_DEFS))
+  .digest("hex");
 
 // ---------------------------------------------------------------------------
 // /api/reason — one batched analysis per window (unchanged behavior + mock)
@@ -132,7 +138,7 @@ async function analyzeWindow(summary: unknown): Promise<{ cached: boolean; entry
       entry: { created_at: new Date().toISOString(), model: "mock", analysis: mockAnalysis(summary) },
     };
   }
-  const key = createHash("sha256").update(MODEL_ID + JSON.stringify(summary)).digest("hex");
+  const key = createHash("sha256").update(MODEL_ID + REASON_SYSTEM_PROMPT + JSON.stringify(summary)).digest("hex");
   const cache = loadCache();
   if (cache[key]) return { cached: true, entry: cache[key] };
 
@@ -252,7 +258,7 @@ const server = http.createServer(async (req, res) => {
       const cacheKey = USE_MOCK
         ? null
         : createHash("sha256")
-            .update(JSON.stringify([MODEL_ID, body.role ?? "member", body.as_of_day ?? "", body.messages]))
+            .update(JSON.stringify([MODEL_ID, CHAT_CONFIG_HASH, body.role ?? "member", body.as_of_day ?? "", body.messages]))
             .digest("hex");
       if (cacheKey) {
         const cache = loadChatCache();
