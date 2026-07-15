@@ -148,6 +148,73 @@ The ecosystem converged on OTel GenAI semconv over OTLP as the emit standard; ga
 
 ---
 
+## Session additions — Jul 15 2026 (demo-prep, cost, features, strategy)
+
+### Demo-prep blockers (needed before the William/Wade real-mode demo)
+
+32. **Mode visibility + safety.** Add a UI mode badge (REAL/MOCK, sourced from a
+    server field) so the running mode is never ambiguous; add a `reason:mock` npm
+    script for free deterministic rehearsal; restart discipline — kill stale
+    servers before a run. Root cause: the July 14 false cold run happened on a
+    stale real-mode server with the mode invisible.
+33. **Rotate the DeltaV API key before real-mode prep** — the current key expires
+    July 16, 2026.
+
+### Cost optimization (real, cheap — do before or during real-mode prep)
+
+34. **Enable prompt caching on the system prompt + tool definitions.** Diagnosis
+    showed input tokens dominate cost and caching is underused; the biggest
+    lever, and free to turn on.
+35. **Default narration to a Haiku-class model.** Reserve frontier only where
+    narration quality demonstrably needs it. The engine does the reasoning; the
+    model only phrases. Also a dogfooding story.
+
+### Product feature ideas (post-demo, design-stage — not now)
+
+36. **Data mode as a product feature.** Separate LLM mode (real vs scripted
+    narration — internal) from data mode (connected-gateway data vs seeded
+    sample data — user-facing). Offer a labeled "sample data" mode so prospects
+    explore a working Delta-V before connecting a gateway. Serves the self-serve
+    funnel and the trust barrier. Keep the labeling explicit.
+37. **Bring-your-own-model for narration.** Let customers route narration through
+    their own model/endpoint. Primary value is deployment flexibility and
+    data-boundary/compliance, not cost (narration is already cheap). Risk:
+    narration quality depends on the chosen model — needs a quality floor or
+    explicit labeling. Enforcement stays model-independent. Distinct from the
+    MCP surface (item 22 = bring your own assistant).
+
+### Content (post-demo)
+
+38. **Dogfood piece: "What Delta-V cost to build, and what Delta-V told me to fix
+    about it."** The Console usage dashboard (input-dominated, caching
+    underused, frontier model on a light task) is the artifact — Delta-V's own
+    advice applied to Delta-V. Gated on M2 ingestion.
+
+### Strategy notes (recorded for interview-answer value — not build items)
+
+39. **Target segment.** Segment by inference spend and gateway-capability, not
+    company size. Fit is ~$10K–200K/month LLM spend, running or willing to run a
+    gateway (so enforcement applies). Spans mid-market and dev-heavy startups;
+    excludes generic SMB (too little spend, can't use enforcement, reaches for
+    free Langfuse+LiteLLM) and enterprise (procurement, SOC2, above solo reach).
+40. **Deployment model.** Default is self-hosted whole-app in the customer's
+    environment (Docker/Helm) for the gateway-capable target — engine, event
+    store, UI, narration all on their infra/keys; spend data never leaves their
+    boundary. Near-zero COGS, removes the data-trust barrier, consistent with
+    the local-first thesis and with customers already self-hosting a gateway.
+    "Just host the LLM" is a non-option — the sensitive asset is the data, not
+    the model.
+41. **COGS/pricing.** Near-zero COGS because it's a control plane, not an
+    inference product (customer's tokens on customer's key). Decouples price
+    from cost. Likely pricing: tiered on governed spend with feature gates for
+    higher tiers. Narration COGS small and controllable (Haiku + caching, est.
+    $8–15/customer/mo). Revisit the earlier "reject hosted multi-tenant" note:
+    that was scoped to a COGS fear this analysis doesn't support — keep
+    rejecting premature hosted (billing infra, SOC2, hosting before demand),
+    not hosted as an architecture.
+
+---
+
 ## Guardrails on how we build (carried from the whole build — do not violate)
 
 - **Math for the meter, LLM for the judgment.** Engine computes numbers; the model narrates and decides. The model never re-derives a figure a tool can provide.
