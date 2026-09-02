@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "reason": "tsx server/reason-server.ts",
-    "reason:mock": "USE_MOCK_LLM=true tsx server/reason-server.ts"
+    "reason:mock": "USE_MOCK_LLM=true tsx server/reason-server.ts",
+    "test": "tsx --test server/gateway/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
