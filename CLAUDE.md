@@ -8,6 +8,8 @@ against budget, and recommends fixes — with one guardrailed action path.
 SPEC.md is the original build spec; DEMO_SCRIPT.md is the repeatable demo.
 Full design spec, including brand guidelines and anything not yet built:
 docs/DESIGN.md (implemented tokens live in src/app/styles.css).
+PM-facing prioritized stories + assumptions (agent intake): docs/STORIES.md;
+technical depth remains in BACKLOG.md.
 
 ## Core principle: math for the meter, LLM for the judgment
 
