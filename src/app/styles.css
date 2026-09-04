@@ -245,6 +245,10 @@ button {
   color: var(--text-2);
 }
 
+.chat-arch-note {
+  margin: 0 0 12px;
+}
+
 .chat-suggestions {
   display: flex;
   flex-direction: column;

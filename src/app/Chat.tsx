@@ -224,6 +224,9 @@ export function Chat({
               Ask about the workload's spend. The agent answers by calling the metering engine —
               it never invents numbers. Actions run through a guardrail. Try:
             </p>
+            <p className="fine-print chat-arch-note">
+              Policy written to your gateway. Delta-V is not in the request path.
+            </p>
             <div className="chat-suggestions">
               {suggestions.map((s) => (
                 <button key={s} className="chip suggestion-chip" onClick={() => send(s)} type="button">

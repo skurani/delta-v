@@ -8,6 +8,9 @@ import { ROLE_LABEL, type Role } from "./TopBar";
 // Wire values (member/admin) stay in the payload; render shows FinOps/Eng.
 const roleLabel = (r: string) => ROLE_LABEL[r as Role] ?? r;
 
+const ARCH_LABEL =
+  "Policy written to your gateway. Delta-V is not in the request path.";
+
 export interface ActionResult {
   action: string;
   feature: string;
@@ -51,6 +54,7 @@ export function GuardrailCard({ result }: { result: ActionResult }) {
       </div>
       <p className="guardrail-reason">{result.reason}</p>
       {result.simulation_note && <p className="fine-print">{result.simulation_note}</p>}
+      <p className="fine-print">{ARCH_LABEL}</p>
     </div>
   );
 }

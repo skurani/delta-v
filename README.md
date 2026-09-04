@@ -14,6 +14,18 @@ pinned to a composable dashboard canvas where it stays live.
 > generator). The principle throughout: **math for the meter, LLM for the
 > judgment** — and honest defaults, never demo-tuned.
 
+## Status
+
+Working POC on synthetic data. The deterministic engine and two-gate guardrail
+are built and verified in mock mode (`USE_MOCK_LLM=true`). Gateway ingestion and
+enforcement write-back are in progress (see `BACKLOG.md` items 26 and 29). No
+customers yet. Seeking design partners who run agents in production to shape the
+solution.
+
+Requirements and scope: [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) ·
+build spec: [SPEC.md](SPEC.md) · backlog: [BACKLOG.md](BACKLOG.md) ·
+stories: [docs/STORIES.md](docs/STORIES.md).
+
 ## Quick start
 
 ```sh

@@ -152,6 +152,11 @@ The ecosystem converged on OTel GenAI semconv over OTLP as the emit standard; ga
 
 ## Session additions — Jul 15 2026 (demo-prep, cost, features, strategy)
 
+43. **Demo architecture label on guardrail + chat empty state (completed).**
+    The golden-path demo never stated that Delta-V is not in the request path;
+    viewers inferred a proxy. Persistent one-line label on guardrail verdict
+    cards (HELD and EXECUTED) and chat dock empty state.
+
 ### Demo-prep blockers (needed before the William/Wade real-mode demo)
 
 32. **Mode visibility + safety.** Add a UI mode badge (REAL/MOCK, sourced from a
