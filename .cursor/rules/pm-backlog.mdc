@@ -1,0 +1,25 @@
+---
+description: Work Delta-V from docs/STORIES.md like a PM backlog
+globs: docs/STORIES.md, BACKLOG.md, HANDOFF.md
+alwaysApply: true
+---
+
+# PM backlog in Cursor
+
+`docs/STORIES.md` is the working backlog. `BACKLOG.md` is the design dump
+and definition of done. Do not invent a third list.
+
+When the user says "next story", "groom the backlog", or names an ID
+(`M2-S3`):
+
+1. Read that story's **Assumptions** and **Acceptance** before coding.
+2. Honor the cross-cutting assumptions at the top of STORIES.md
+   (honest numbers, same engine, enforcement labeled, no silent mapping).
+3. Work **one** Now story. Do not start the next until this one is Done
+   or explicitly parked.
+4. Recommended Now order: M2-S0 → M2-S1 → M2-S2 → M2-S3 → M1-S5.
+5. On finish: set Status in STORIES.md, tick the matching BACKLOG.md
+   item, mention leftover acceptance boxes.
+
+M1 leftovers are demo close-out. Do not treat them as M2 blockers unless
+the user has a demo booked or the story is M1-S5 (feeds storage work).

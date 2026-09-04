@@ -94,12 +94,12 @@ Key never reaches the frontend; .env and data/ are gitignored.
 
 ## Roadmap
 
-- **Stage 2b (pending):** attribution heatmap, drill-down modal,
-  forecast-chart refinements.
-- **Fast-follow:** MCP server wrapping the engine tools, so any
-  MCP-capable model/client can drive them (tools become model-agnostic).
-- **Later:** guardrail evolves from permission gate to approval workflow
-  (held actions queue for review instead of narration-only escalation).
+- **Milestone 1 (banked):** Stage 2a/2b UI, engine, guardrail, mock +
+  live-model golden path. Leftover demo polish lives in BACKLOG.md P1/P2.
+- **Milestone 2 (current):** real-data MVP — ingestion, attribution
+  mapping, gateway adapters. Full list in BACKLOG.md.
+- **Later:** MCP server wrapping the engine tools; guardrail evolves from
+  permission gate to approval workflow.
 
 ## Conventions
 

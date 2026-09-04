@@ -2,7 +2,9 @@
 
 **Product:** Delta-V — an AI spend control plane. A chat-primary agent plus a composable dashboard that meters, attributes, forecasts, and governs LLM/API/compute spend over a metered workload.
 
-**Purpose of this doc:** the running backlog and the explicit finish line for the POC. Two horizons: **POC (the demoable artifact)** and **Beyond POC (the monetizable MVP path)**. Items are checked when their done-criteria are met.
+**Purpose of this doc:** the design dump and explicit finish line. Two horizons: **POC (the demoable artifact)** and **Beyond POC (the monetizable MVP path)**. Items are checked when their done-criteria are met.
+
+**Working backlog (stories, priorities, assumptions):** `docs/STORIES.md`. Groom and ship from there; keep this file as source context.
 
 ---
 
@@ -10,7 +12,7 @@
 
 Delta-V has two distinct finish lines. They are sequenced, not merged: bank Milestone 1 fully, then pursue Milestone 2. This keeps the demoable artifact's full attribution richness (synthetic data carries feature/team/user tags that raw provider bills do not) while preserving the real-data path as its own deliberate step.
 
-### Milestone 1 — POC (synthetic data) ← current target
+### Milestone 1 — POC (synthetic data) — banked
 
 Done when a first-time viewer can, without help, watch the full story end-to-end and it holds up to scrutiny:
 
@@ -23,13 +25,13 @@ Done when a first-time viewer can, without help, watch the full story end-to-end
 
 When all six hold, Milestone 1 is done. This is the thing you demo.
 
-### Milestone 2 — Real-data MVP (later, separate finish line)
+### Milestone 2 — Real-data MVP ← current target
 
 Done when real usage data can flow through the same engine instead of only synthetic:
 
 1. **Real ingestion works** via at least one path — provider billing exports (Anthropic/OpenAI usage APIs, AWS CUR/FOCUS; coarse but easy) and/or SDK/gateway instrumentation (rich, harder). The schema already *is* the emit contract.
 2. **The coarser-data tradeoff is confronted deliberately.** Real provider bills lack feature/team/user tags; decide how attribution degrades gracefully (or require instrumentation for the rich views).
-3. Whatever subset of auth / persistence / multi-tenancy / real execution a first pilot user genuinely needs — scoped when Milestone 2 is actually started, not pre-committed here.
+3. Whatever subset of auth / persistence / multi-tenancy / real execution a first pilot user genuinely needs — scoped against the M2-P0 list below, not pre-committed as a full platform.
 
 Milestone 2 is NOT required to call Milestone 1 done. It is the monetization path, sequenced after.
 
@@ -82,9 +84,9 @@ Milestone 2 is NOT required to call Milestone 1 done. It is the monetization pat
 
 ---
 
-## MILESTONE 2 BACKLOG (real-data MVP — captured, not blocking Milestone 1)
+## MILESTONE 2 BACKLOG (real-data MVP — current work)
 
-*Prioritized. P0 = required for any real pilot user; P1 = required to sell/scale it; P2 = compliance/maturity. Scoped properly when Milestone 2 starts.*
+*Prioritized. P0 = required for any real pilot user; P1 = required to sell/scale it; P2 = compliance/maturity.*
 
 ### M2-P0 — the minimum for real data + a real pilot
 
