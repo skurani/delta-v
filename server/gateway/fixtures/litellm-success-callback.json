@@ -1,0 +1,22 @@
+{
+  "id": "chatcmpl-fixture-001",
+  "call_type": "acompletion",
+  "model": "anthropic/claude-opus-4-8",
+  "custom_llm_provider": "anthropic",
+  "spend": 0.0482,
+  "response_cost": 0.0482,
+  "prompt_tokens": 1200,
+  "completion_tokens": 400,
+  "total_tokens": 1600,
+  "startTime": "2026-07-09T14:02:11.000Z",
+  "endTime": "2026-07-09T14:02:14.250Z",
+  "metadata": {
+    "user_api_key_alias": "support-agent",
+    "user_api_key_team_id": "support",
+    "user_api_key_user_id": "maya",
+    "spend_logs_metadata": {
+      "feature": "draft_reply",
+      "customer_id": "acme-retail"
+    }
+  }
+}
